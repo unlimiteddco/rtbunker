@@ -1,0 +1,65 @@
+{
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "cart": "Cart",
+    "account": "My account",
+    "search": "Search",
+    "search_placeholder": "Search products…"
+  },
+  "home": {
+    "hero_title": "Curated products, fast shipping",
+    "hero_subtitle": "Discover this season's selection.",
+    "cta_shop": "Browse shop",
+    "featured_categories": "Featured categories"
+  },
+  "shop": {
+    "title": "Shop",
+    "filters": "Filters",
+    "sort": "Sort",
+    "sort_relevance": "Relevance",
+    "sort_price_asc": "Price: low to high",
+    "sort_price_desc": "Price: high to low",
+    "no_results": "No products match."
+  },
+  "product": {
+    "add_to_cart": "Add to cart",
+    "out_of_stock": "Out of stock",
+    "select_variant": "Select a variant",
+    "description": "Description",
+    "details": "Details"
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty.",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "taxes": "Taxes",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "step_address": "Address",
+    "step_shipping": "Shipping",
+    "step_payment": "Payment",
+    "place_order": "Place order",
+    "continue": "Continue"
+  },
+  "account": {
+    "title": "My account",
+    "login": "Sign in",
+    "register": "Create account",
+    "logout": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "orders": "Orders",
+    "addresses": "Addresses"
+  },
+  "footer": {
+    "rights": "All rights reserved."
+  }
+}

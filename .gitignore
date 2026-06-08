@@ -1,0 +1,31 @@
+node_modules/
+.next/
+.medusa/
+dist/
+build/
+.cache/
+coverage/
+
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.staging.example
+
+# Dumps de base de datos (contienen datos de clientes — NUNCA a git)
+dumps/
+*.dump
+*.sql
+
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Docker volumes
+.docker-data/
+
+# Migration outputs
+scripts/migration/output/
+scripts/migration/*.json
+!scripts/migration/sample.json

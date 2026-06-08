@@ -1,0 +1,36 @@
+import {
+  MiddlewareRoute,
+  validateAndTransformBody,
+  validateAndTransformQuery,
+} from '@medusajs/framework'
+import { z } from 'zod'
+
+export const ListReviewsSchema = z.object({
+  product_id: z.string(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+})
+export type ListReviewsSchema = z.infer<typeof ListReviewsSchema>
+
+export const CreateReviewSchema = z.object({
+  product_id: z.string(),
+  email: z.string().email(),
+  name: z.string().max(80).optional().nullable(),
+  rating: z.number().int().min(1).max(5),
+  title: z.string().max(120).optional().nullable(),
+  content: z.string().max(2000).optional().nullable(),
+})
+export type CreateReviewSchema = z.infer<typeof CreateReviewSchema>
+
+export const storeReviewMiddlewares: MiddlewareRoute[] = [
+  {
+    matcher: '/store/reviews',
+    method: 'GET',
+    middlewares: [validateAndTransformQuery(ListReviewsSchema, {})],
+  },
+  {
+    matcher: '/store/reviews',
+    method: 'POST',
+    middlewares: [validateAndTransformBody(CreateReviewSchema)],
+  },
+]

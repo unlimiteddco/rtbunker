@@ -1,0 +1,12 @@
+{
+  "extends": "../../packages/config/tsconfig.medusa.json",
+  "compilerOptions": {
+    "outDir": "./.medusa/server",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "medusa-config.ts", ".medusa/types/*"],
+  "exclude": ["node_modules", ".medusa", "dist", "src/admin"]
+}

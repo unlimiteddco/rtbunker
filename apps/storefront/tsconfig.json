@@ -1,0 +1,20 @@
+{
+  "extends": "../../packages/config/tsconfig.next.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    ".next/types/**/*.ts",
+    "next.config.ts",
+    "env.ts",
+    "i18n.ts"
+  ],
+  "exclude": ["node_modules", ".next", "dist"]
+}

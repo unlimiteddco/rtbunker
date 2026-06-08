@@ -1,0 +1,65 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "shop": "Boutique",
+    "cart": "Panier",
+    "account": "Mon compte",
+    "search": "Rechercher",
+    "search_placeholder": "Rechercher des produits…"
+  },
+  "home": {
+    "hero_title": "Produits soignés, livraison rapide",
+    "hero_subtitle": "Découvrez la sélection de la saison.",
+    "cta_shop": "Voir la boutique",
+    "featured_categories": "Catégories en vedette"
+  },
+  "shop": {
+    "title": "Boutique",
+    "filters": "Filtres",
+    "sort": "Trier",
+    "sort_relevance": "Pertinence",
+    "sort_price_asc": "Prix : croissant",
+    "sort_price_desc": "Prix : décroissant",
+    "no_results": "Aucun produit correspondant."
+  },
+  "product": {
+    "add_to_cart": "Ajouter au panier",
+    "out_of_stock": "Épuisé",
+    "select_variant": "Choisir une variante",
+    "description": "Description",
+    "details": "Détails"
+  },
+  "cart": {
+    "title": "Votre panier",
+    "empty": "Votre panier est vide.",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "taxes": "Taxes",
+    "total": "Total",
+    "checkout": "Commander",
+    "remove": "Supprimer"
+  },
+  "checkout": {
+    "title": "Commande",
+    "step_address": "Adresse",
+    "step_shipping": "Livraison",
+    "step_payment": "Paiement",
+    "place_order": "Valider la commande",
+    "continue": "Continuer"
+  },
+  "account": {
+    "title": "Mon compte",
+    "login": "Se connecter",
+    "register": "Créer un compte",
+    "logout": "Se déconnecter",
+    "email": "Email",
+    "password": "Mot de passe",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "orders": "Commandes",
+    "addresses": "Adresses"
+  },
+  "footer": {
+    "rights": "Tous droits réservés."
+  }
+}

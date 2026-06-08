@@ -1,0 +1,7 @@
+node_modules
+.next
+.medusa
+dist
+build
+coverage
+*.lock

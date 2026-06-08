@@ -1,0 +1,65 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "shop": "Tienda",
+    "cart": "Carrito",
+    "account": "Mi cuenta",
+    "search": "Buscar",
+    "search_placeholder": "Buscar productos…"
+  },
+  "home": {
+    "hero_title": "Productos cuidados, envío rápido",
+    "hero_subtitle": "Descubre la selección de esta temporada.",
+    "cta_shop": "Ver tienda",
+    "featured_categories": "Categorías destacadas"
+  },
+  "shop": {
+    "title": "Tienda",
+    "filters": "Filtros",
+    "sort": "Ordenar",
+    "sort_relevance": "Relevancia",
+    "sort_price_asc": "Precio: menor a mayor",
+    "sort_price_desc": "Precio: mayor a menor",
+    "no_results": "No hay productos que coincidan."
+  },
+  "product": {
+    "add_to_cart": "Añadir al carrito",
+    "out_of_stock": "Agotado",
+    "select_variant": "Selecciona una variante",
+    "description": "Descripción",
+    "details": "Detalles"
+  },
+  "cart": {
+    "title": "Tu carrito",
+    "empty": "Tu carrito está vacío.",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "taxes": "Impuestos",
+    "total": "Total",
+    "checkout": "Tramitar pedido",
+    "remove": "Eliminar"
+  },
+  "checkout": {
+    "title": "Tramitar pedido",
+    "step_address": "Dirección",
+    "step_shipping": "Envío",
+    "step_payment": "Pago",
+    "place_order": "Confirmar pedido",
+    "continue": "Continuar"
+  },
+  "account": {
+    "title": "Mi cuenta",
+    "login": "Iniciar sesión",
+    "register": "Crear cuenta",
+    "logout": "Cerrar sesión",
+    "email": "Email",
+    "password": "Contraseña",
+    "first_name": "Nombre",
+    "last_name": "Apellidos",
+    "orders": "Pedidos",
+    "addresses": "Direcciones"
+  },
+  "footer": {
+    "rights": "Todos los derechos reservados."
+  }
+}

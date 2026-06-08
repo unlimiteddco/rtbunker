@@ -1,0 +1,104 @@
+# Entorno local: levanta solo las dependencias (postgres, redis, meilisearch).
+# Para levantar también backend y storefront en contenedores, usa el perfil `apps`:
+#   docker compose --profile apps up -d
+#
+# Comandos comunes:
+#   npm run docker:up        → solo dependencias
+#   npm run docker:down
+#   docker compose --profile apps up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rtbunker-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-medusa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-medusa_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-medusa_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medusa} -d ${POSTGRES_DB:-medusa_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: rtbunker-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.11
+    container_name: rtbunker-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-change_me_in_production}
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+    ports:
+      - "${MEILI_PORT:-7700}:7700"
+    volumes:
+      - meilisearch_data:/meili_data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:7700/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: rtbunker-backend
+    profiles: ["apps"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    env_file:
+      - apps/backend/.env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-medusa}:${POSTGRES_PASSWORD:-medusa_dev}@postgres:5432/${POSTGRES_DB:-medusa_db}
+      REDIS_URL: redis://redis:6379
+      MEILISEARCH_HOST: http://meilisearch:7700
+    ports:
+      - "${BACKEND_PORT:-9000}:9000"
+
+  storefront:
+    build:
+      context: .
+      dockerfile: apps/storefront/Dockerfile
+    container_name: rtbunker-storefront
+    profiles: ["apps"]
+    restart: unless-stopped
+    depends_on:
+      - backend
+    env_file:
+      - apps/storefront/.env
+    environment:
+      MEDUSA_BACKEND_URL: http://backend:9000
+    ports:
+      - "${STOREFRONT_PORT:-8000}:3000"
+
+volumes:
+  postgres_data:
+  redis_data:
+  meilisearch_data:

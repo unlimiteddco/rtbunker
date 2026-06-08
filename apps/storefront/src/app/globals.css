@@ -1,0 +1,438 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* =================================================================
+ * rtbunker · DESIGN SYSTEM
+ *
+ * Reglas:
+ *   • Source of truth: tokens `--rt-*` (alineados con el handoff bundle
+ *     de RT Bunker Design System). Hex directos, sin transformaciones.
+ *   • Mapeo shadcn: las variables HSL (--background, --primary, etc.)
+ *     se DERIVAN de los tokens RT para que Radix/shadcn sigan funcionando
+ *     con su sintaxis `hsl(var(--x))`.
+ *   • Para añadir un color → 1) añade --rt-<color> 2) si es semántico,
+ *     mapea su valor HSL en :root para que shadcn lo entienda.
+ *
+ * Paleta:
+ *   60% off-white  ·  30% black  ·  10% yellow stamp
+ *   (NUNCA poner yellow como fondo de cuerpo de texto largo).
+ * =============================================================== */
+
+@layer base {
+  :root {
+    /* ─── RT BUNKER · tokens crudos ─────────────────────────── */
+    /* Brand — Tiffany cyan (variable name kept as legacy alias).
+       Si renombramos, sed `rt-yellow` → `rt-accent` en todo el src. */
+    --rt-yellow: #0abab5;          /* Tiffany Pantone 1837 */
+    --rt-yellow-deep: #089290;     /* hover / press */
+    --rt-yellow-soft: #b8ece9;     /* tints / soft backgrounds */
+
+    /* Surfaces */
+    --rt-black: #0f0f0f;
+    --rt-black-2: #1a1a1a;
+    --rt-black-3: #262626;
+    --rt-white: #fcfcfc;
+    --rt-white-2: #f4f4f2;
+    --rt-white-3: #ececea;
+
+    /* Neutrals */
+    --rt-ink-900: #0f0f0f;
+    --rt-ink-700: #2b2b2b;
+    --rt-ink-500: #6b6b6b;
+    --rt-ink-300: #b3b3b3;
+    --rt-ink-100: #e3e3e1;
+    --rt-ink-50: #f4f4f2;
+
+    /* Semantic */
+    --rt-success: #1b7a3e;
+    --rt-danger: #c8321f;
+    --rt-info: #1f62c8;
+    --rt-price-sale: #c8321f;
+
+    /* Tracking */
+    --rt-tracking-tight: -0.01em;
+    --rt-tracking-display: -0.02em;
+    --rt-tracking-eyebrow: 0.18em;
+    --rt-tracking-uppercase: 0.08em;
+
+    /* Layout */
+    --rt-container: 1280px;
+    --rt-gutter: clamp(16px, 4vw, 48px);
+
+    /* ─── shadcn HSL derivadas ──────────────────────────────── */
+    --background: 0 0% 99%; /* --rt-white */
+    --foreground: 0 0% 6%; /* --rt-black */
+    --card: 0 0% 99%;
+    --card-foreground: 0 0% 6%;
+    --popover: 0 0% 99%;
+    --popover-foreground: 0 0% 6%;
+
+    --primary: 178 90% 38%; /* #0ABAB5 Tiffany cyan */
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 6%;
+    --secondary-foreground: 0 0% 99%;
+
+    --muted: 60 5% 96%; /* --rt-white-2 */
+    --muted-foreground: 0 0% 42%; /* --rt-ink-500 */
+    --accent: 60 5% 96%;
+    --accent-foreground: 0 0% 6%;
+    --subtle: 60 5% 96%;
+
+    --destructive: 9 75% 45%;
+    --destructive-foreground: 0 0% 99%;
+    --success: 142 64% 30%;
+    --success-foreground: 0 0% 99%;
+    --warning: 36 100% 50%; /* naranja distinto del primary */
+    --warning-foreground: 0 0% 6%;
+
+    --border: 60 4% 89%; /* --rt-ink-100 */
+    --input: 60 4% 89%;
+    --ring: 178 90% 38%;
+
+    --radius: 14px;
+  }
+
+  .dark {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 99%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 99%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 99%;
+    --primary: 178 90% 38%;
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 99%;
+    --secondary-foreground: 0 0% 6%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 99%;
+    --subtle: 0 0% 11%;
+    --destructive: 9 70% 50%;
+    --destructive-foreground: 0 0% 99%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 178 90% 38%;
+  }
+}
+
+/* ─── Tokens semánticos expuestos a Tailwind 4 ─────────────── */
+@theme inline {
+  /* Fonts inyectadas vía next/font desde [locale]/layout.tsx */
+  --font-display: var(--font-anton), 'Bebas Neue', 'Archivo Black', Impact, sans-serif;
+  --font-heading: var(--font-montserrat), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Colors → utilidades Tailwind */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-subtle: hsl(var(--subtle));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  /* Tokens RT directos (hex) — acceso vía `bg-rt-yellow`, `text-rt-black`. */
+  --color-rt-yellow: var(--rt-yellow);
+  --color-rt-yellow-deep: var(--rt-yellow-deep);
+  --color-rt-yellow-soft: var(--rt-yellow-soft);
+  --color-rt-black: var(--rt-black);
+  --color-rt-black-2: var(--rt-black-2);
+  --color-rt-black-3: var(--rt-black-3);
+  --color-rt-white: var(--rt-white);
+  --color-rt-white-2: var(--rt-white-2);
+  --color-rt-white-3: var(--rt-white-3);
+  --color-rt-ink-900: var(--rt-ink-900);
+  --color-rt-ink-700: var(--rt-ink-700);
+  --color-rt-ink-500: var(--rt-ink-500);
+  --color-rt-ink-300: var(--rt-ink-300);
+  --color-rt-ink-100: var(--rt-ink-100);
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
+  --radius-3xl: 48px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(15, 15, 15, 0.06);
+  --shadow-sm: 0 4px 12px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-md: 0 12px 28px rgba(15, 15, 15, 0.1), 0 2px 6px rgba(15, 15, 15, 0.05);
+  --shadow-lg: 0 28px 60px rgba(15, 15, 15, 0.18);
+  --shadow-xl: 0 40px 80px rgba(15, 15, 15, 0.24);
+  --shadow-yellow: 0 14px 30px rgba(10, 186, 181, 0.4);
+
+  /* Motion */
+  --ease-out-rt: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-rt: cubic-bezier(0.65, 0, 0.35, 1);
+  --transition-fast: 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-base: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 420ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Animations */
+  --animate-marquee: marquee 24s linear infinite;
+  --animate-marquee-fast: marquee 14s linear infinite;
+  --animate-float-slow: floatSlow 9s ease-in-out infinite;
+  --animate-tilt: tilt 11s ease-in-out infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes floatSlow {
+    0%, 100% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    50% {
+      transform: translate3d(0, -14px, 0) rotate(2deg);
+    }
+  }
+  @keyframes tilt {
+    0%, 100% {
+      transform: rotate(-3deg);
+    }
+    50% {
+      transform: rotate(3deg);
+    }
+  }
+}
+
+/* ─── Globales base ────────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  html {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  ::selection {
+    background-color: var(--rt-yellow);
+    color: var(--rt-black);
+  }
+  :focus-visible {
+    outline: 3px solid rgba(10, 186, 181, 0.55);
+    outline-offset: 2px;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+/* ─── Tipografía estructural · "rt-*" classes ──────────────── */
+@layer components {
+  .rt-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    line-height: 1.02;
+    letter-spacing: var(--rt-tracking-display);
+    text-transform: uppercase;
+  }
+  .rt-h1 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: clamp(2.25rem, 5vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: var(--rt-tracking-tight);
+  }
+  .rt-h2 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 2.75rem;
+    line-height: 1.02;
+    letter-spacing: var(--rt-tracking-tight);
+  }
+  .rt-h3 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.18;
+  }
+  .rt-h4 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1.18;
+  }
+  .rt-eyebrow {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    letter-spacing: var(--rt-tracking-eyebrow);
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+  .rt-meta {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .rt-price {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--rt-black);
+    letter-spacing: var(--rt-tracking-tight);
+  }
+}
+
+/* ─── Utilidades de layout & efectos ───────────────────────── */
+@layer utilities {
+  .container-page {
+    @apply mx-auto w-full max-w-[var(--rt-container)] px-4 md:px-6 lg:px-8;
+  }
+  .text-eyebrow {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+  .text-uppercase-tight {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: var(--rt-tracking-uppercase);
+    text-transform: uppercase;
+  }
+  .surface {
+    @apply rounded-[14px] border border-border bg-card;
+    box-shadow: var(--shadow-xs);
+  }
+  .surface-muted {
+    @apply rounded-[14px] border border-border bg-muted;
+  }
+  .hover-lift {
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .glow-yellow {
+    box-shadow: var(--shadow-yellow);
+  }
+
+  /* ─── Scroll reveal (driven by <Reveal>) ───────────────── */
+  /*
+   * El componente cliente añade data-reveal="in" cuando la sección entra
+   * en viewport. Aquí definimos el estado inicial + transición. Cada
+   * variante cambia solo la transformación de partida.
+   */
+  [data-reveal] {
+    opacity: 0;
+    will-change: opacity, transform;
+    transition:
+      opacity 700ms var(--ease-out-rt),
+      transform 800ms var(--ease-out-rt);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  [data-reveal='up'] {
+    transform: translate3d(0, 28px, 0);
+  }
+  [data-reveal='down'] {
+    transform: translate3d(0, -28px, 0);
+  }
+  [data-reveal='left'] {
+    transform: translate3d(-32px, 0, 0);
+  }
+  [data-reveal='right'] {
+    transform: translate3d(32px, 0, 0);
+  }
+  [data-reveal='scale'] {
+    transform: scale(0.94);
+  }
+  [data-reveal='blur'] {
+    transform: translate3d(0, 18px, 0);
+    filter: blur(8px);
+  }
+  [data-reveal][data-revealed='true'] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* Marquee infinito reusable (servicios hero strip). */
+  .animate-marquee {
+    animation: marquee 32s linear infinite;
+  }
+  .animate-float-slow {
+    animation: var(--animate-float-slow);
+  }
+  .animate-tilt {
+    animation: var(--animate-tilt);
+  }
+
+  /* Línea diagonal sutil para el hero (grid carbón). */
+  .bg-grid-carbon {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+}
