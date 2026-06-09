@@ -7,6 +7,7 @@ import { ServicesGallery } from '@/components/services/services-gallery'
 import { ServicesGrid } from '@/components/services/services-grid'
 import { ServicesHero } from '@/components/services/services-hero'
 import { ServicesProcess } from '@/components/services/services-process'
+import { ServicesWarranty } from '@/components/services/services-warranty'
 import { ServicesWhy } from '@/components/services/services-why'
 
 export const revalidate = 3600
@@ -39,6 +40,7 @@ export default async function ServicesPage({ params }: ServicesPageProps) {
       <ServicesProcess />
       <ServicesGallery />
       <ServicesWhy />
+      <ServicesWarranty />
       <ServicesFaq />
       <ServicesCta />
     </>

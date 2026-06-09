@@ -31,6 +31,16 @@ const FAQS = [
     q: '¿Trabajáis con flotas y empresas?',
     a: 'Sí. Hacemos rotulación y wrapping para furgonetas comerciales, flotas de empresa, vehículos de evento o branding temporal. Facturamos con IVA y emitimos certificados de aplicación.',
   },
+  {
+    // TODO Nikita: confirmar alcance exacto y duración de la garantía oficial.
+    q: '¿Qué cubre exactamente la garantía de 2 años?',
+    a: 'La garantía cubre la instalación del material aplicado: defectos de aplicación como despegues en bordes, burbujas, levantamientos o fallos de adhesión imputables al montaje. Durante 2 años desde la entrega lo reparamos sin coste. Va siempre acompañada de un certificado de aplicación firmado.',
+  },
+  {
+    // TODO Nikita: confirmar lista de exclusiones (lavados a presión, productos, etc.).
+    q: '¿Qué NO cubre la garantía?',
+    a: 'Quedan excluidos los daños por mal uso, mal mantenimiento o lavados agresivos: rascadas, impactos, lavados a presión a corta distancia, ceras o productos abrasivos no recomendados, y el desgaste natural del material fuera de su vida útil. Te entregamos una guía de cuidados para que la garantía se mantenga válida.',
+  },
 ]
 
 export function ServicesFaq() {

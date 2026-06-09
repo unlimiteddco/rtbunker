@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react'
+import { Crown, Search } from 'lucide-react'
 import Image from 'next/image'
 import { getTranslations } from 'next-intl/server'
 
@@ -59,6 +59,13 @@ export async function Header({ locale }: HeaderProps) {
             >
               Nuevo
             </span>
+          </Link>
+          <Link
+            href="/planes"
+            className="inline-flex items-center gap-1.5 rounded-full bg-rt-yellow px-3 py-1.5 font-[family-name:var(--font-heading)] text-[12px] font-bold uppercase tracking-wider text-rt-black transition-colors hover:bg-rt-yellow-deep"
+          >
+            <Crown className="h-3.5 w-3.5" />
+            Club
           </Link>
         </nav>
 

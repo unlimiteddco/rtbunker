@@ -1,13 +1,23 @@
 'use client'
 
-import { CheckCircle2, Loader2, ShieldCheck, Star } from 'lucide-react'
-import { useState } from 'react'
+import { CheckCircle2, ImagePlus, Loader2, ShieldCheck, Star, X } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { StarRating } from '@/components/product/star-rating'
 import { cn } from '@/lib/cn'
 import { sdk } from '@/lib/medusa'
 import type { ProductReview, ProductReviewsData } from '@/lib/reviews'
+
+const MAX_PHOTOS = 6
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024 // 8 MB
+const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+interface PhotoDraft {
+  id: string
+  file: File
+  preview: string
+}
 
 interface ProductReviewsProps {
   productId: string
@@ -149,6 +159,27 @@ function ReviewItem({ review }: { review: ProductReview }) {
           {review.content}
         </p>
       ) : null}
+      {Array.isArray(review.images) && review.images.length > 0 ? (
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {review.images.map((src) => (
+            <li key={src}>
+              <a
+                href={src}
+                target="_blank"
+                rel="noreferrer"
+                className="block overflow-hidden rounded-[10px] border border-rt-black/10 transition-opacity hover:opacity-90"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt="Foto de la reseña"
+                  className="h-[88px] w-[88px] object-cover"
+                />
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {review.admin_response ? (
         <div className="mt-4 rounded-[12px] border-l-2 border-rt-yellow bg-rt-black/[0.03] px-4 py-3">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-rt-ink-500 font-[family-name:var(--font-heading)]">
@@ -182,8 +213,44 @@ function ReviewForm({
   const [email, setEmail] = useState(defaultEmail ?? '')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [photos, setPhotos] = useState<PhotoDraft[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  function addPhotos(files: FileList | null) {
+    if (!files || files.length === 0) return
+    setError(null)
+    setPhotos((prev) => {
+      const next = [...prev]
+      for (const file of Array.from(files)) {
+        if (next.length >= MAX_PHOTOS) {
+          setError(`Puedes subir un máximo de ${MAX_PHOTOS} fotos.`)
+          break
+        }
+        if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+          setError('Solo se admiten imágenes JPG, PNG o WebP.')
+          continue
+        }
+        if (file.size > MAX_PHOTO_BYTES) {
+          setError('Cada foto debe pesar menos de 8 MB.')
+          continue
+        }
+        next.push({ id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) })
+      }
+      return next
+    })
+    // Permite volver a seleccionar el mismo archivo tras quitarlo.
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function removePhoto(id: string) {
+    setPhotos((prev) => {
+      const target = prev.find((p) => p.id === id)
+      if (target) URL.revokeObjectURL(target.preview)
+      return prev.filter((p) => p.id !== id)
+    })
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -198,6 +265,24 @@ function ReviewForm({
     }
     setSubmitting(true)
     try {
+      // 1. Subir cada foto al backend (R2). El SDK fija content-type:json por
+      //    defecto y rompe multipart — hay que neutralizarlo explícitamente.
+      const imageUrls: string[] = []
+      for (const photo of photos) {
+        const formData = new FormData()
+        formData.append('file', photo.file)
+        const uploaded = await sdk.client.fetch<{ url: string }>(
+          '/store/reviews/upload',
+          {
+            method: 'POST',
+            body: formData,
+            headers: { 'content-type': null as unknown as string },
+          },
+        )
+        imageUrls.push(uploaded.url)
+      }
+
+      // 2. Crear la reseña con las URLs de las fotos.
       await sdk.client.fetch('/store/reviews', {
         method: 'POST',
         body: {
@@ -207,8 +292,10 @@ function ReviewForm({
           rating,
           title: title || null,
           content: content || null,
+          images: imageUrls.length > 0 ? imageUrls : null,
         },
       })
+      photos.forEach((p) => URL.revokeObjectURL(p.preview))
       toast.success('Reseña enviada · pendiente de aprobación')
       onSuccess()
     } catch (err) {
@@ -292,6 +379,59 @@ function ReviewForm({
         maxLength={2000}
         className="block w-full resize-none rounded-[12px] border border-rt-black/15 bg-rt-white px-4 py-3 text-[15px] text-rt-black placeholder:text-rt-ink-300 transition-colors focus:border-rt-black focus:outline-none"
       />
+
+      {/* Fotos */}
+      <div>
+        <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.14em] text-rt-black font-[family-name:var(--font-heading)]">
+          Fotos (opcional)
+        </label>
+        <div className="flex flex-wrap gap-3">
+          {photos.map((photo) => (
+            <div
+              key={photo.id}
+              className="relative h-20 w-20 overflow-hidden rounded-[12px] border border-rt-black/15"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photo.preview}
+                alt="Vista previa"
+                className="h-full w-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => removePhoto(photo.id)}
+                aria-label="Quitar foto"
+                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rt-black/70 text-rt-white transition-colors hover:bg-rt-black"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          {photos.length < MAX_PHOTOS ? (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-[12px] border border-dashed border-rt-black/25 text-rt-ink-500 transition-colors hover:border-rt-black hover:text-rt-black"
+            >
+              <ImagePlus className="h-5 w-5" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em]">
+                Añadir
+              </span>
+            </button>
+          ) : null}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          onChange={(e) => addPhotos(e.target.files)}
+          className="hidden"
+        />
+        <p className="mt-2 text-[12px] text-rt-ink-500">
+          Hasta {MAX_PHOTOS} fotos · JPG, PNG o WebP · máx. 8 MB cada una.
+        </p>
+      </div>
 
       {error ? <p className="text-[13px] font-medium text-rt-danger">{error}</p> : null}
 

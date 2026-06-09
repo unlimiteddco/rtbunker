@@ -15,6 +15,8 @@ export const env = createEnv({
     NEXT_PUBLIC_DEFAULT_REGION: z.string().min(2).default('es'),
     NEXT_PUBLIC_BASE_URL: z.string().url(),
     NEXT_PUBLIC_STRIPE_KEY: z.string().min(1),
+    // PayPal: opcional. Sin esta var el checkout funciona solo con Stripe.
+    NEXT_PUBLIC_PAYPAL_CLIENT_ID: z.string().default(''),
   },
   experimental__runtimeEnv: {
     NEXT_PUBLIC_MEDUSA_BACKEND_URL: process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL,
@@ -22,6 +24,7 @@ export const env = createEnv({
     NEXT_PUBLIC_DEFAULT_REGION: process.env.NEXT_PUBLIC_DEFAULT_REGION,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     NEXT_PUBLIC_STRIPE_KEY: process.env.NEXT_PUBLIC_STRIPE_KEY,
+    NEXT_PUBLIC_PAYPAL_CLIENT_ID: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
   },
   skipValidation: process.env.SKIP_ENV_VALIDATION === 'true',
 })

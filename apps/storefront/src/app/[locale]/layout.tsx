@@ -20,6 +20,7 @@ import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { CookieBanner } from '@/components/marketing/cookie-banner'
 import { EmailCapturePopup } from '@/components/marketing/email-capture-popup'
+import { WhatsappButton } from '@/components/marketing/whatsapp-button'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { locales } from '@/i18n/config'
@@ -80,6 +81,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
               <Footer />
               <MiniCartDrawer locale={locale} />
               <EmailCapturePopup />
+              <WhatsappButton />
               <CookieBanner />
               <Toaster position="top-center" />
             </div>

@@ -35,6 +35,7 @@ interface Review {
   rating: number
   title: string | null
   content: string | null
+  images: string[] | null
   status: ReviewStatus
   verified_purchase: boolean
   admin_response: string | null
@@ -311,6 +312,32 @@ const ReviewsPage = () => {
                 <Text size="small" className="text-ui-fg-subtle whitespace-pre-wrap">
                   {selected.content ?? 'Sin comentario.'}
                 </Text>
+
+                {Array.isArray(selected.images) && selected.images.length > 0 ? (
+                  <div className="flex flex-col gap-y-2">
+                    <Text size="small" weight="plus">
+                      Fotos del cliente ({selected.images.length})
+                    </Text>
+                    <div className="flex flex-wrap gap-2">
+                      {selected.images.map((src) => (
+                        <a
+                          key={src}
+                          href={src}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={src}
+                            alt="Foto de la reseña"
+                            className="border-ui-border-base h-20 w-20 rounded-md border object-cover transition-opacity hover:opacity-80"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="flex flex-col gap-y-2">
                   <Text size="small" weight="plus">

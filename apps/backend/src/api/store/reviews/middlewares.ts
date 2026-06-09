@@ -3,7 +3,13 @@ import {
   validateAndTransformBody,
   validateAndTransformQuery,
 } from '@medusajs/framework'
+import multer from 'multer'
 import { z } from 'zod'
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 }, // 8 MB tope por foto
+})
 
 export const ListReviewsSchema = z.object({
   product_id: z.string(),
@@ -19,6 +25,7 @@ export const CreateReviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
   title: z.string().max(120).optional().nullable(),
   content: z.string().max(2000).optional().nullable(),
+  images: z.array(z.string().url()).max(6).optional().nullable(),
 })
 export type CreateReviewSchema = z.infer<typeof CreateReviewSchema>
 
@@ -27,6 +34,12 @@ export const storeReviewMiddlewares: MiddlewareRoute[] = [
     matcher: '/store/reviews',
     method: 'GET',
     middlewares: [validateAndTransformQuery(ListReviewsSchema, {})],
+  },
+  {
+    matcher: '/store/reviews/upload',
+    method: 'POST',
+    bodyParser: false,
+    middlewares: [upload.single('file')],
   },
   {
     matcher: '/store/reviews',

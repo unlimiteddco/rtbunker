@@ -20,6 +20,8 @@ const Review = model.define('review', {
   rating: model.number(),
   title: model.text().nullable(),
   content: model.text().nullable(),
+  // URLs públicas de fotos subidas por el cliente (R2). Hasta 6.
+  images: model.json().nullable(),
   status: model.enum(['pending', 'approved', 'rejected']).default('pending'),
   verified_purchase: model.boolean().default(false),
   admin_response: model.text().nullable(),

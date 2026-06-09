@@ -109,7 +109,7 @@ export default defineConfig({
       },
     },
 
-    // ───── Pagos: Stripe ─────────────────────────────────────────────
+    // ───── Pagos: Stripe (+ PayPal opcional) ─────────────────────────
     {
       resolve: '@medusajs/medusa/payment',
       options: {
@@ -124,6 +124,27 @@ export default defineConfig({
               automatic_payment_methods: true,
             },
           },
+          // PayPal (provider custom). Solo se registra si hay credenciales,
+          // para que el backend arranque igual sin ellas. provider_id resultante
+          // = `pp_paypal_paypal`. El webhook lo enruta Medusa a
+          // `/hooks/payment/paypal_paypal`.
+          ...(process.env.PAYPAL_CLIENT_ID
+            ? [
+                {
+                  resolve: './src/modules/paypal',
+                  id: 'paypal',
+                  options: {
+                    client_id: process.env.PAYPAL_CLIENT_ID,
+                    client_secret: process.env.PAYPAL_CLIENT_SECRET,
+                    environment: (process.env.PAYPAL_ENVIRONMENT ?? 'sandbox') as
+                      | 'sandbox'
+                      | 'live',
+                    autoCapture: process.env.PAYPAL_AUTO_CAPTURE === 'true',
+                    webhook_id: process.env.PAYPAL_WEBHOOK_ID,
+                  },
+                },
+              ]
+            : []),
         ],
       },
     },

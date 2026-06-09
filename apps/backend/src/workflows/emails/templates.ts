@@ -195,6 +195,74 @@ export const orderPlacedTemplate = (order: {
   }
 }
 
+/**
+ * Aviso interno al equipo cuando entra un pedido nuevo. Lista los artículos,
+ * el total y un CTA directo al pedido en el admin de Medusa.
+ */
+export const orderPlacedAdminTemplate = (order: {
+  display_id: number | string
+  email: string
+  customer_name?: string | null
+  total: number
+  currency_code: string
+  admin_url: string
+  items: Array<{
+    title: string
+    quantity: number
+    unit_price?: number | null
+    variant_title?: string | null
+  }>
+}) => {
+  const cur = order.currency_code
+
+  const itemRows = order.items
+    .map((it) => {
+      const lineTotal = (it.unit_price ?? 0) * it.quantity
+      const variant =
+        it.variant_title && it.variant_title !== it.title
+          ? `<p style="margin:2px 0 0; font-size:12px; color:${BRAND.muted};">${it.variant_title}</p>`
+          : ''
+      return `<tr>
+        <td style="padding:10px 8px 10px 0; vertical-align:middle;">
+          <p style="margin:0; font-size:14px; font-weight:600; color:${BRAND.carbon};">${it.title}</p>
+          ${variant}
+          <p style="margin:4px 0 0; font-size:12px; color:${BRAND.muted};">Cantidad: ${it.quantity}</p>
+        </td>
+        <td style="padding:10px 0; vertical-align:middle; text-align:right; white-space:nowrap; font-size:14px; font-weight:600; color:${BRAND.carbon};">
+          ${formatMoney(lineTotal, cur)}
+        </td>
+      </tr>`
+    })
+    .join('')
+
+  const customer = order.customer_name
+    ? `${order.customer_name} · ${order.email}`
+    : order.email
+
+  return {
+    subject: `Nuevo pedido #${order.display_id} · ${formatMoney(order.total, cur)}`,
+    html: wrap(
+      `Nuevo pedido #${order.display_id}`,
+      `<p style="margin:0 0 6px;">Ha entrado un pedido nuevo.</p>
+       <p style="margin:0 0 22px; font-size:14px; color:${BRAND.ink};"><strong>Cliente:</strong> ${customer}</p>
+
+       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${itemRows}</table>
+
+       <div style="margin-top:14px; padding-top:12px; border-top:1px solid ${BRAND.line};">
+         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+           <tr>
+             <td style="padding:5px 0; font-size:15px; color:${BRAND.carbon}; font-weight:700;">Total</td>
+             <td style="padding:5px 0; text-align:right; font-size:16px; color:${BRAND.carbon}; font-weight:800;">${formatMoney(order.total, cur)}</td>
+           </tr>
+         </table>
+       </div>
+
+       <div style="margin:28px 0 6px;">${button(order.admin_url, 'Abrir en admin →', 'dark')}</div>`,
+      { preheader: `Pedido #${order.display_id} · ${customer} · ${formatMoney(order.total, cur)}` },
+    ),
+  }
+}
+
 export const orderShippedTemplate = (order: {
   display_id: number | string
   tracking_numbers?: string[]
@@ -209,6 +277,37 @@ export const orderShippedTemplate = (order: {
     html: wrap(
       `Tu pedido va de camino`,
       `<p>Hemos enviado tu pedido <strong>#${order.display_id}</strong>.</p>${tracking}${carrier}`,
+    ),
+  }
+}
+
+/**
+ * Aviso al cliente cuando un pedido normal pasa a ENTREGADO. Tono cálido,
+ * con guiño a compartir en Instagram.
+ */
+export const orderDeliveredTemplate = (order: {
+  display_id: number | string
+  customer_name?: string | null
+  storefront_url?: string | null
+}) => {
+  const base = (order.storefront_url ?? storeBase()).replace(/\/$/, '')
+  const greeting = order.customer_name ? `¡Hola ${order.customer_name}!` : '¡Hola!'
+  return {
+    subject: `Tu pedido #${order.display_id} ha llegado · ¡esperamos que te encante!`,
+    html: wrap(
+      `Tu pedido ha llegado`,
+      `<p style="margin:0 0 6px;">${greeting}</p>
+       <p style="margin:0 0 18px;">Tu pedido <strong>#${order.display_id}</strong> aparece como entregado.
+       Esperamos que haya llegado en perfecto estado y que te encante tanto como a nosotros.</p>
+       <p style="margin:0 0 22px;">Si quieres lucirlo en Instagram, etiquétanos como
+       <strong>@rtbunker</strong> — nos hace mucha ilusión ver dónde acaban nuestras creaciones.</p>
+
+       <div style="margin:8px 0 6px;">${button(`${base}/tienda`, 'Volver a la tienda →')}</div>
+
+       <p style="margin:28px 0 0; font-size:13px; color:${BRAND.muted};">
+         ¿Algún problema con la entrega? Responde a este email y lo resolvemos enseguida.
+       </p>`,
+      { preheader: `Tu pedido #${order.display_id} ha llegado · esperamos que te encante` },
     ),
   }
 }

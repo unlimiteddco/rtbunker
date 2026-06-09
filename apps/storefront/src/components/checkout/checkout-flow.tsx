@@ -2,8 +2,11 @@
 
 import { Elements } from '@stripe/react-stripe-js'
 import type { HttpTypes } from '@medusajs/types'
+import { PayPalScriptProvider } from '@paypal/react-paypal-js'
 import { useState } from 'react'
 
+import { cn } from '@/lib/cn'
+import { getPaypalOptions } from '@/lib/paypal'
 import { getStripe } from '@/lib/stripe'
 
 import { AddressStep } from './address-step'
@@ -11,7 +14,10 @@ import { CheckoutStepper, type CheckoutStep } from './checkout-stepper'
 import { FreeOrderStep } from './free-order-step'
 import { OrderSummary } from './order-summary'
 import { PaymentStep } from './payment-step'
+import { PaypalStep } from './paypal-step'
 import { ShippingStep } from './shipping-step'
+
+type PaymentMethod = 'stripe' | 'paypal'
 
 interface CheckoutFlowProps {
   cart: HttpTypes.StoreCart
@@ -47,7 +53,10 @@ const stripeAppearance = {
 export function CheckoutFlow({ cart: initialCart, locale, defaultDni }: CheckoutFlowProps) {
   const [step, setStep] = useState<CheckoutStep>('address')
   const [cart, setCart] = useState(initialCart)
+  const [method, setMethod] = useState<PaymentMethod>('stripe')
   const stripePromise = getStripe()
+  // `null` si NEXT_PUBLIC_PAYPAL_CLIENT_ID no está → checkout solo Stripe.
+  const paypalOptions = getPaypalOptions()
   const meta = STEP_TITLE[step]
   const isFreeOrder = (cart.total ?? 0) <= 0
   const description =
@@ -92,20 +101,63 @@ export function CheckoutFlow({ cart: initialCart, locale, defaultDni }: Checkout
             // Pedido gratis (canje 100% créditos + envío gratis): sin Stripe.
             <FreeOrderStep cart={cart} onBack={() => setStep('shipping')} />
           ) : (
-            <Elements
-              stripe={stripePromise}
-              options={{
-                mode: 'payment',
-                // Stripe espera el importe en céntimos (entero). Medusa guarda
-                // euros decimales (e.g. 51.4129) → redondeamos a la unidad mínima.
-                amount: Math.max(1, Math.round((cart.total ?? 0) * 100)),
-                currency: cart.currency_code ?? 'eur',
-                locale: locale as 'es' | 'en' | 'fr',
-                appearance: stripeAppearance,
-              }}
-            >
-              <PaymentStep cart={cart} locale={locale} onBack={() => setStep('shipping')} />
-            </Elements>
+            <div className="space-y-5">
+              {/* Selector de método de pago. Solo se muestra si PayPal está
+                  configurado; si no, queda únicamente Stripe (como hoy). */}
+              {paypalOptions ? (
+                <div className="grid grid-cols-2 gap-2" role="tablist" aria-label="Método de pago">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={method === 'stripe'}
+                    onClick={() => setMethod('stripe')}
+                    className={cn(
+                      'rounded-lg border p-3 text-sm font-medium transition-colors',
+                      method === 'stripe'
+                        ? 'border-rt-yellow bg-rt-yellow/5 text-rt-black'
+                        : 'border-border text-muted-foreground hover:border-rt-yellow/50',
+                    )}
+                  >
+                    Tarjeta / Stripe
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={method === 'paypal'}
+                    onClick={() => setMethod('paypal')}
+                    className={cn(
+                      'rounded-lg border p-3 text-sm font-medium transition-colors',
+                      method === 'paypal'
+                        ? 'border-rt-yellow bg-rt-yellow/5 text-rt-black'
+                        : 'border-border text-muted-foreground hover:border-rt-yellow/50',
+                    )}
+                  >
+                    PayPal
+                  </button>
+                </div>
+              ) : null}
+
+              {paypalOptions && method === 'paypal' ? (
+                <PayPalScriptProvider options={paypalOptions}>
+                  <PaypalStep cart={cart} onBack={() => setStep('shipping')} />
+                </PayPalScriptProvider>
+              ) : (
+                <Elements
+                  stripe={stripePromise}
+                  options={{
+                    mode: 'payment',
+                    // Stripe espera el importe en céntimos (entero). Medusa guarda
+                    // euros decimales (e.g. 51.4129) → redondeamos a la unidad mínima.
+                    amount: Math.max(1, Math.round((cart.total ?? 0) * 100)),
+                    currency: cart.currency_code ?? 'eur',
+                    locale: locale as 'es' | 'en' | 'fr',
+                    appearance: stripeAppearance,
+                  }}
+                >
+                  <PaymentStep cart={cart} locale={locale} onBack={() => setStep('shipping')} />
+                </Elements>
+              )}
+            </div>
           )
         ) : null}
       </section>

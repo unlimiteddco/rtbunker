@@ -14,6 +14,10 @@ const schema = z.object({
   email: z.string().trim().email('Email inválido'),
   subject: z.string().trim().max(160).optional(),
   message: z.string().trim().min(10, 'Cuéntanos un poco más (mín. 10 caracteres)').max(4000),
+  // Adjunto opcional: el storefront sube el binario al backend y nos pasa
+  // sólo la URL + nombre. Resend descarga el fichero por `path` remoto.
+  attachment_url: z.string().url().optional(),
+  attachment_name: z.string().max(200).optional(),
   // Honeypot anti-spam: debe llegar vacío.
   company: z.string().optional(),
 })
@@ -33,11 +37,20 @@ function escapeHtml(value: string): string {
 }
 
 export async function sendContactAction(formData: FormData): Promise<ContactResult> {
+  // FormData devuelve '' para campos vacíos; lo normalizamos a undefined para
+  // que los validadores `.optional()` (p. ej. `url()`) no fallen.
+  const opt = (key: string): string | undefined => {
+    const v = formData.get(key)
+    return typeof v === 'string' && v.trim() !== '' ? v : undefined
+  }
+
   const parsed = schema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),
     subject: formData.get('subject'),
     message: formData.get('message'),
+    attachment_url: opt('attachment_url'),
+    attachment_name: opt('attachment_name'),
     company: formData.get('company'),
   })
 
@@ -57,7 +70,7 @@ export async function sendContactAction(formData: FormData): Promise<ContactResu
     return { ok: true, message: '¡Gracias! Te responderemos pronto.' }
   }
 
-  const { name, email, subject, message } = parsed.data
+  const { name, email, subject, message, attachment_url, attachment_name } = parsed.data
   const apiKey = process.env.RESEND_API_KEY
   const to = process.env.CONTACT_TO ?? 'info@rtbunker.com'
   const from = process.env.CONTACT_FROM ?? 'RT Bunker <info@rtbunker.com>'
@@ -69,10 +82,12 @@ export async function sendContactAction(formData: FormData): Promise<ContactResu
       from: email,
       name,
       subject: finalSubject,
+      attachment: attachment_url ?? null,
     })
     return { ok: true, message: '¡Gracias! Te responderemos pronto.' }
   }
 
+  const attachmentName = attachment_name?.trim() || 'archivo adjunto'
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1a1a1a;line-height:1.6">
       <p><strong>Nombre:</strong> ${escapeHtml(name)}</p>
@@ -80,8 +95,32 @@ export async function sendContactAction(formData: FormData): Promise<ContactResu
       ${subject?.trim() ? `<p><strong>Asunto:</strong> ${escapeHtml(subject.trim())}</p>` : ''}
       <p><strong>Mensaje:</strong></p>
       <p style="white-space:pre-wrap">${escapeHtml(message)}</p>
+      ${
+        attachment_url
+          ? `<p><strong>Archivo adjunto:</strong> <a href="${escapeHtml(attachment_url)}">${escapeHtml(attachmentName)}</a></p>`
+          : ''
+      }
     </div>
   `
+
+  const payload: {
+    from: string
+    to: string[]
+    reply_to: string
+    subject: string
+    html: string
+    attachments?: { path: string; filename: string }[]
+  } = {
+    from,
+    to: [to],
+    reply_to: email,
+    subject: finalSubject,
+    html,
+  }
+  if (attachment_url) {
+    // Resend descarga el adjunto desde la URL remota (`path`).
+    payload.attachments = [{ path: attachment_url, filename: attachmentName }]
+  }
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
@@ -90,13 +129,7 @@ export async function sendContactAction(formData: FormData): Promise<ContactResu
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        reply_to: email,
-        subject: finalSubject,
-        html,
-      }),
+      body: JSON.stringify(payload),
     })
 
     if (!res.ok) {

@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 import { Reveal } from '@/components/services/reveal'
 
 interface ShowcaseTile {
@@ -7,17 +9,20 @@ interface ShowcaseTile {
   tone: 'a' | 'b' | 'c'
   /** Tamaño relativo dentro del mosaico. */
   span?: 'wide' | 'tall' | 'normal'
-  /** Texto display que va estampado dentro del tile. */
+  /** Texto display que va estampado dentro del tile (fallback sin imagen). */
   stamp: string
+  /** Foto real del trabajo. Si falta, se usa el estampado/gradiente. */
+  image?: string
 }
 
+// TODO Nikita: reemplazar los placeholders de /servicios/*.jpg por fotos reales de cada trabajo.
 const TILES: ShowcaseTile[] = [
-  { label: 'BMW M3 · Negro mate', category: 'Chrome delete', tone: 'a', span: 'wide', stamp: 'M3' },
+  { label: 'BMW M3 · Negro mate', category: 'Chrome delete', tone: 'a', span: 'wide', stamp: 'M3', image: '/servicios/chrome-delete.jpg' },
   { label: 'Audi RS6 · Capó carbón', category: 'Car design', tone: 'b', stamp: 'RS6' },
-  { label: 'Mercedes G63 · Full wrap', category: 'Full wrap', tone: 'c', span: 'tall', stamp: 'G63' },
+  { label: 'Mercedes G63 · Full wrap', category: 'Full wrap', tone: 'c', span: 'tall', stamp: 'G63', image: '/servicios/full-wrap.jpg' },
   { label: 'Golf R · Faros 35%', category: 'Ahumado', tone: 'a', stamp: 'GOLF' },
-  { label: 'Porsche 992 · Stripes', category: 'Car design', tone: 'c', stamp: '992' },
-  { label: 'Furgo Sprinter · Branding', category: 'Rotulación', tone: 'b', span: 'wide', stamp: 'BUNKER' },
+  { label: 'Porsche 992 · Stripes', category: 'Car design', tone: 'c', stamp: '992', image: '/servicios/detailing.jpg' },
+  { label: 'Furgo Sprinter · Branding', category: 'Rotulación', tone: 'b', span: 'wide', stamp: 'BUNKER', image: '/servicios/branding.jpg' },
 ]
 
 const TONE_BG: Record<ShowcaseTile['tone'], string> = {
@@ -73,22 +78,40 @@ function ShowcaseCard({ tile }: { tile: ShowcaseTile }) {
     <article
       className={`group relative h-full w-full overflow-hidden rounded-[24px] border border-rt-black-3 ${TONE_BG[tile.tone]}`}
     >
-      {/* Stamp display */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 flex items-center justify-center"
-      >
+      {tile.image ? (
+        <>
+          {/* Foto real del trabajo */}
+          <Image
+            src={tile.image}
+            alt={tile.label}
+            fill
+            sizes="(min-width: 768px) 33vw, 100vw"
+            className="object-cover transition-transform duration-[700ms] ease-[var(--ease-out-rt)] group-hover:scale-105"
+          />
+          {/* Velo para legibilidad de tags/labels */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-rt-black/70 via-rt-black/10 to-rt-black/20"
+          />
+        </>
+      ) : (
+        /* Stamp display (fallback sin imagen) */
         <span
-          className="font-[family-name:var(--font-display)] text-rt-white/10 transition-transform duration-[700ms] ease-[var(--ease-out-rt)] group-hover:scale-110"
-          style={{
-            fontSize: 'clamp(72px, 11vw, 180px)',
-            letterSpacing: '-0.04em',
-            lineHeight: 0.9,
-          }}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
         >
-          {tile.stamp}
+          <span
+            className="font-[family-name:var(--font-display)] text-rt-white/10 transition-transform duration-[700ms] ease-[var(--ease-out-rt)] group-hover:scale-110"
+            style={{
+              fontSize: 'clamp(72px, 11vw, 180px)',
+              letterSpacing: '-0.04em',
+              lineHeight: 0.9,
+            }}
+          >
+            {tile.stamp}
+          </span>
         </span>
-      </span>
+      )}
 
       {/* Light sweep */}
       <span

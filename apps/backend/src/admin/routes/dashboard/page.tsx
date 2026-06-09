@@ -2,11 +2,15 @@ import { defineRouteConfig } from '@medusajs/admin-sdk'
 import {
   ArrowUpRightOnBox,
   ChartBar,
+  CreditCard,
   CurrencyDollar,
+  ReceiptPercent,
   ShoppingCart,
   Sparkles,
   Spinner,
+  Trophy,
   Users,
+  UsersSolid,
 } from '@medusajs/icons'
 import { Badge, Container, Heading, Text } from '@medusajs/ui'
 import { useQuery } from '@tanstack/react-query'
@@ -26,6 +30,7 @@ import {
   formatMoney,
   metricsForToday,
   metricsForWindow,
+  totalRevenue,
   type OrderLite,
 } from '../../lib/dashboard-metrics'
 
@@ -37,6 +42,13 @@ interface AdminOrdersResponse {
 interface CustomOrdersResponse {
   custom_orders: CustomOrder[]
   count: number
+}
+
+interface MembershipsSummaryResponse {
+  active_count: number
+  by_tier: { bronce: number; plata: number; gold: number }
+  mrr: number
+  arr: number
 }
 
 const PENDING_CUSTOM_STATUSES = ['pending_review', 'awaiting_changes', 'proof_sent'] as const
@@ -71,13 +83,26 @@ const DashboardPage = () => {
     queryFn: () => sdk.client.fetch('/admin/custom-orders', { query: { limit: 50 } }),
   })
 
+  // 3. KPIs del RT Bunker Club (MRR/ARR/socios). Carga en mount.
+  const { data: clubData } = useQuery<MembershipsSummaryResponse>({
+    queryKey: ['dashboard-club'],
+    queryFn: () => sdk.client.fetch('/admin/memberships/summary'),
+  })
+
   const orders = ordersData?.orders ?? []
   const customOrders = customData?.custom_orders ?? []
+  const club = clubData ?? {
+    active_count: 0,
+    by_tier: { bronce: 0, plata: 0, gold: 0 },
+    mrr: 0,
+    arr: 0,
+  }
 
   const today = useMemo(() => metricsForToday(orders), [orders])
   const week = useMemo(() => metricsForWindow(orders, 7), [orders])
   const month = useMemo(() => metricsForWindow(orders, 30), [orders])
   const series = useMemo(() => dailySeries(orders, 30), [orders])
+  const billedTotal = useMemo(() => totalRevenue(orders), [orders])
 
   const recentOrders = useMemo(() => orders.slice(0, 8), [orders])
 
@@ -154,13 +179,124 @@ const DashboardPage = () => {
           delta={month.ordersDelta}
           trail={<Sparkline data={series} metric="orders" stroke="#0f0f0f" />}
         />
+        <KPICard
+          label="Ticket medio · 30 días"
+          icon={ReceiptPercent}
+          value={formatMoney(month.avgOrderValue)}
+          hint={`${month.orders} ${month.orders === 1 ? 'pedido' : 'pedidos'} en 30 días`}
+        />
+        <KPICard
+          label="Total facturado"
+          icon={CurrencyDollar}
+          value={formatMoney(billedTotal)}
+          hint="Acumulado de los últimos 90 días"
+        />
       </div>
+
+      {/* ─── RT Bunker Club ─────────────────────────────────────── */}
+      <ClubBlock club={club} />
 
       {/* ─── Personalizadas + Recent orders ─────────────────────── */}
       <div className="grid grid-cols-1 gap-3 px-1 lg:grid-cols-[1fr_360px]">
         <RecentOrdersBlock orders={recentOrders} />
         <CustomOrdersQueueBlock pending={pendingCustomOrders} readyToShip={readyToShipCount} />
       </div>
+    </div>
+  )
+}
+
+// ─── RT Bunker Club block ────────────────────────────────────────────
+
+const TIER_LABELS: Record<'bronce' | 'plata' | 'gold', string> = {
+  bronce: 'Bronce',
+  plata: 'Plata',
+  gold: 'Gold',
+}
+
+function ClubBlock({ club }: { club: MembershipsSummaryResponse }) {
+  return (
+    <Container className="p-0">
+      <div className="flex items-center justify-between px-6 py-4">
+        <div>
+          <Heading level="h2">RT Bunker Club</Heading>
+          <Text size="small" leading="compact" className="text-ui-fg-subtle">
+            Ingresos recurrentes y socios activos.
+          </Text>
+        </div>
+        <Link
+          to="/memberships"
+          className="text-ui-fg-interactive flex items-center gap-1 text-xs font-medium"
+        >
+          Ver socios
+          <ArrowUpRightOnBox className="h-3 w-3" />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 px-6 pb-4 md:grid-cols-3">
+        <KPICard
+          label="MRR"
+          icon={CreditCard}
+          value={formatMoney(club.mrr)}
+          hint="Estimado · socios activos × precio del tier"
+        />
+        <KPICard
+          label="Socios activos"
+          icon={UsersSolid}
+          value={String(club.active_count)}
+          hint={`${TIER_LABELS.bronce} ${club.by_tier.bronce} · ${TIER_LABELS.plata} ${club.by_tier.plata} · ${TIER_LABELS.gold} ${club.by_tier.gold}`}
+        />
+        <KPICard
+          label="ARR"
+          icon={Trophy}
+          value={formatMoney(club.arr)}
+          hint="Estimado · MRR × 12"
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 px-6 pb-6">
+        <TierStat label={TIER_LABELS.bronce} value={club.by_tier.bronce} tone="orange" />
+        <TierStat label={TIER_LABELS.plata} value={club.by_tier.plata} tone="green" />
+        <TierStat label={TIER_LABELS.gold} value={club.by_tier.gold} tone="purple" />
+      </div>
+    </Container>
+  )
+}
+
+function TierStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: number
+  tone: 'orange' | 'purple' | 'green'
+}) {
+  const bg =
+    tone === 'orange'
+      ? 'bg-ui-tag-orange-bg'
+      : tone === 'purple'
+        ? 'bg-ui-tag-purple-bg'
+        : 'bg-ui-tag-green-bg'
+  const fg =
+    tone === 'orange'
+      ? 'text-ui-tag-orange-text'
+      : tone === 'purple'
+        ? 'text-ui-tag-purple-text'
+        : 'text-ui-tag-green-text'
+
+  return (
+    <div className={`rounded-md px-3 py-2 ${bg}`}>
+      <Text
+        size="xsmall"
+        leading="compact"
+        weight="plus"
+        className={`uppercase tracking-[0.12em] ${fg}`}
+      >
+        {label}
+      </Text>
+      <Heading level="h2" className={fg}>
+        {value}
+      </Heading>
     </div>
   )
 }

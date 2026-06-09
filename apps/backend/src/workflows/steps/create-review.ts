@@ -10,6 +10,7 @@ export interface CreateReviewInput {
   rating: number
   title?: string | null
   content?: string | null
+  images?: string[] | null
   customer_id?: string | null
 }
 
@@ -20,6 +21,7 @@ export interface CreateReviewOutput {
     rating: number
     status: string
     verified_purchase: boolean
+    images: string[] | null
   }
 }
 
@@ -92,6 +94,7 @@ export const createReviewStep = createStep(
         rating: input.rating,
         title: input.title ?? null,
         content: input.content ?? null,
+        images: input.images ?? null,
         status: 'pending',
         verified_purchase: verified,
       },
@@ -105,6 +108,7 @@ export const createReviewStep = createStep(
           rating: created.rating,
           status: created.status,
           verified_purchase: created.verified_purchase,
+          images: created.images ?? null,
         },
       } as CreateReviewOutput,
       { created_id: created.id as string },

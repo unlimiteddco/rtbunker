@@ -39,6 +39,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
       'rating',
       'title',
       'content',
+      'images',
       'verified_purchase',
       'admin_response',
       'created_at',
@@ -77,6 +78,7 @@ export async function POST(
       rating: body.rating,
       title: body.title,
       content: body.content,
+      images: body.images ?? null,
       customer_id,
     },
   })

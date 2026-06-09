@@ -21,6 +21,7 @@ const REVIEW_FIELDS = [
   'rating',
   'title',
   'content',
+  'images',
   'status',
   'verified_purchase',
   'admin_response',

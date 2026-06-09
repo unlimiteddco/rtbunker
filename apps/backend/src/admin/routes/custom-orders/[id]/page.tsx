@@ -1,4 +1,11 @@
-import { ArrowUturnLeft, ArrowUpTray, CheckCircle, Eye } from '@medusajs/icons'
+import {
+  ArrowDownTray,
+  ArrowUpTray,
+  ArrowUturnLeft,
+  CheckCircle,
+  Eye,
+  XMark,
+} from '@medusajs/icons'
 import {
   Badge,
   Button,
@@ -168,17 +175,25 @@ function ConfigCard({ order }: { order: CustomOrder }) {
           Archivo del cliente
         </Text>
         {order.design_file_url ? (
-          <a
-            href={order.design_file_url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-1 inline-flex items-center gap-2 text-ui-fg-interactive hover:underline"
-          >
-            <Eye />
-            <Text size="small" leading="compact" weight="plus">
-              {order.design_file_name ?? 'Abrir archivo'}
-            </Text>
-          </a>
+          <div className="mt-1 flex flex-col gap-y-2">
+            <a
+              href={order.design_file_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-ui-fg-interactive hover:underline"
+            >
+              <Eye />
+              <Text size="small" leading="compact" weight="plus">
+                {order.design_file_name ?? 'Abrir archivo'}
+              </Text>
+            </a>
+            <div>
+              <DownloadButton
+                url={order.design_file_url}
+                fileName={order.design_file_name}
+              />
+            </div>
+          </div>
         ) : (
           <Text size="small" leading="compact" weight="plus">
             — sin archivo —
@@ -200,45 +215,142 @@ function ConfigCard({ order }: { order: CustomOrder }) {
   )
 }
 
+/**
+ * Descarga en 1 clic el archivo del cliente. Intenta fetch → blob → enlace
+ * `download` programático (fuerza la descarga en vez de abrir en el navegador).
+ * Si el fetch falla (típicamente CORS desde R2/otro origen), cae a
+ * `window.open` para que al menos se abra el archivo.
+ */
+function DownloadButton({ url, fileName }: { url: string; fileName: string | null }) {
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    setIsDownloading(true)
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const blob = await res.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = objectUrl
+      a.download = fileName ?? 'archivo-cliente'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(objectUrl)
+    } catch {
+      // Fallback CORS: abrir en una pestaña nueva.
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  return (
+    <Button
+      size="small"
+      variant="secondary"
+      onClick={handleDownload}
+      isLoading={isDownloading}
+    >
+      <ArrowDownTray />
+      Descargar
+    </Button>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────────
 // Mockups (proofs)
 // ─────────────────────────────────────────────────────────────────
+
+const MAX_PROOF_BYTES = 20 * 1024 * 1024 // 20 MB por archivo
 
 function ProofsCard({ order, onChange }: { order: CustomOrder; onChange: () => void }) {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [adminNotes, setAdminNotes] = useState('')
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
+
+  // Filtra archivos por límite de peso (20 MB) antes de aceptarlos en el estado.
+  const onSelectFiles = (fileList: FileList | null) => {
+    const incoming = fileList ? Array.from(fileList) : []
+    const accepted: File[] = []
+    const rejected: string[] = []
+
+    for (const f of incoming) {
+      if (f.size > MAX_PROOF_BYTES) rejected.push(f.name)
+      else accepted.push(f)
+    }
+
+    if (rejected.length > 0) {
+      toast.error(
+        `Demasiado pesado (máx. 20 MB): ${rejected.join(', ')}. ${
+          rejected.length === 1 ? 'No se subirá.' : 'No se subirán.'
+        }`,
+      )
+    }
+
+    setPendingFiles(accepted)
+  }
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index))
+    // No reseteamos el input nativo: si quedan archivos seleccionados, el
+    // estado manda; el input se limpia al éxito o al volver a elegir.
+  }
 
   const uploadAndAttach = useMutation({
     mutationFn: async () => {
-      if (!pendingFile) throw new Error('Elige un archivo primero.')
+      if (pendingFiles.length === 0) throw new Error('Elige al menos un archivo.')
 
-      // 1. Sube vía SDK (gestiona el multipart/form-data internamente).
-      const uploadRes = await sdk.admin.upload.create({ files: [pendingFile] })
-      const file = uploadRes.files?.[0]
-      if (!file?.url) throw new Error('La subida no devolvió URL.')
+      // Defensa extra: re-validamos el peso justo antes de subir.
+      const tooBig = pendingFiles.filter((f) => f.size > MAX_PROOF_BYTES)
+      if (tooBig.length > 0) {
+        throw new Error(
+          `Archivos demasiado pesados (máx. 20 MB): ${tooBig
+            .map((f) => f.name)
+            .join(', ')}.`,
+        )
+      }
 
-      // 2. Adjunta el proof al CustomOrder.
+      // 1. Sube TODAS las imágenes en una sola llamada vía SDK (gestiona el
+      //    multipart/form-data internamente y devuelve { files: [...] }).
+      const uploadRes = await sdk.admin.upload.create({ files: pendingFiles })
+      const uploaded = uploadRes.files ?? []
+      if (uploaded.length === 0) throw new Error('La subida no devolvió archivos.')
+
+      const proofs = uploaded.map((file, i) => {
+        if (!file?.url) throw new Error('La subida no devolvió URL.')
+        return {
+          url: file.url,
+          file_name: pendingFiles[i]?.name ?? null,
+        }
+      })
+
+      // 2. Adjunta TODOS los proofs al CustomOrder en un único POST batch
+      //    (emite un solo evento → un solo email al cliente con el lote).
       return sdk.client.fetch(`/admin/custom-orders/${order.id}/proofs`, {
         method: 'POST',
         body: {
-          url: file.url,
-          file_name: pendingFile.name,
+          proofs,
           admin_notes: adminNotes || null,
         },
       })
     },
-    onSuccess: () => {
-      toast.success('Mockup subido y cliente notificable.')
-      setPendingFile(null)
+    onSuccess: (_data, _vars) => {
+      toast.success(
+        pendingFiles.length === 1
+          ? 'Mockup subido y cliente notificable.'
+          : `${pendingFiles.length} mockups subidos y cliente notificable.`,
+      )
+      setPendingFiles([])
       setAdminNotes('')
       if (fileInputRef.current) fileInputRef.current.value = ''
       queryClient.invalidateQueries({ queryKey: ['custom-order', order.id] })
       onChange()
     },
     onError: (err: any) => {
-      toast.error(err?.message ?? 'No se pudo subir el mockup.')
+      toast.error(err?.message ?? 'No se pudieron subir los mockups.')
     },
   })
 
@@ -313,28 +425,67 @@ function ProofsCard({ order, onChange }: { order: CustomOrder; onChange: () => v
         <Text size="small" leading="compact" weight="plus">
           Subir nueva versión
         </Text>
+        <Text size="small" leading="compact" className="text-ui-fg-subtle">
+          Puedes seleccionar varias imágenes a la vez (máx. 20 MB cada una).
+        </Text>
         <input
           ref={fileInputRef}
           type="file"
+          multiple
           accept="image/png,image/jpeg,image/webp,application/pdf"
-          onChange={(e) => setPendingFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => onSelectFiles(e.target.files)}
           className="text-ui-fg-subtle text-sm"
         />
-        <Textarea
-          placeholder="Notas para el cliente (opcional)"
-          value={adminNotes}
-          onChange={(e) => setAdminNotes(e.target.value)}
-          rows={3}
-        />
+
+        {pendingFiles.length > 0 ? (
+          <ul className="flex flex-col gap-y-1">
+            {pendingFiles.map((f, i) => (
+              <li
+                key={`${f.name}-${i}`}
+                className="flex items-center justify-between gap-2 rounded-md bg-ui-bg-subtle px-3 py-1.5"
+              >
+                <Text size="small" leading="compact" className="truncate">
+                  {f.name}{' '}
+                  <span className="text-ui-fg-muted">
+                    ({(f.size / (1024 * 1024)).toFixed(1)} MB)
+                  </span>
+                </Text>
+                <IconButton
+                  size="small"
+                  variant="transparent"
+                  onClick={() => removePendingFile(i)}
+                  aria-label={`Quitar ${f.name}`}
+                  disabled={uploadAndAttach.isPending}
+                >
+                  <XMark />
+                </IconButton>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <div className="flex flex-col gap-y-1">
+          <Text size="small" leading="compact" className="text-ui-fg-subtle">
+            Notas del mockup (se envían al cliente en el email)
+          </Text>
+          <Textarea
+            placeholder="Ej: «Ajustado el grosor del borde según tu feedback» (opcional)"
+            value={adminNotes}
+            onChange={(e) => setAdminNotes(e.target.value)}
+            rows={3}
+          />
+        </div>
         <div className="flex justify-end">
           <Button
             size="small"
             onClick={() => uploadAndAttach.mutate()}
-            disabled={!pendingFile || uploadAndAttach.isPending}
+            disabled={pendingFiles.length === 0 || uploadAndAttach.isPending}
             isLoading={uploadAndAttach.isPending}
           >
             <ArrowUpTray />
-            Subir mockup
+            {pendingFiles.length > 1
+              ? `Subir ${pendingFiles.length} mockups`
+              : 'Subir mockup'}
           </Button>
         </div>
       </div>

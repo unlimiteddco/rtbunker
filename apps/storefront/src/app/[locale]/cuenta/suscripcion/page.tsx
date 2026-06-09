@@ -1,11 +1,12 @@
 import { Check, Crown, Sparkles } from 'lucide-react'
 import { setRequestLocale } from 'next-intl/server'
 
+import { ChangeTierButton } from '@/components/memberships/change-tier-button'
 import { ManageSubscriptionButton } from '@/components/memberships/manage-subscription-button'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/routing'
 import { getMembership, isActiveMembership } from '@/lib/membership'
-import { getTier } from '@/lib/memberships'
+import { MEMBERSHIP_TIERS, getTier } from '@/lib/memberships'
 
 interface PageProps {
   params: Promise<{ locale: string }>
@@ -134,6 +135,30 @@ export default async function SubscriptionPage({ params, searchParams }: PagePro
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* Cambiar de plan (prorrateo) */}
+          <div className="rounded-[18px] border border-rt-ink-100 bg-rt-white p-6">
+            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-rt-ink-500">
+              Cambiar de plan
+            </p>
+            <p className="mt-1 text-[13px] text-rt-ink-500">
+              Al cambiar de plan se te cobra solo la diferencia proporcional de lo que queda del mes.
+            </p>
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+              {MEMBERSHIP_TIERS.filter((t) => t.id !== tier.id).map((t) => {
+                const isUpgrade = t.pricePerMonth > tier.pricePerMonth
+                return (
+                  <ChangeTierButton
+                    key={t.id}
+                    targetTierId={t.id}
+                    label={`${isUpgrade ? 'Mejorar a' : 'Cambiar a'} ${t.name} · ${t.pricePerMonth}€/mes`}
+                    variant={isUpgrade ? 'dark' : 'subtle'}
+                    className="w-full"
+                  />
+                )
+              })}
+            </div>
           </div>
         </div>
       ) : (

@@ -5,28 +5,35 @@ interface MulterRequest extends MedusaRequest {
   file?: Express.Multer.File
 }
 
+const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp']
+
 /**
- * POST /store/custom-orders/upload
- * Recibe el archivo de diseño del cliente (multipart, field `file`)
- * y lo sube vía FileModule (R2 en prod, local en dev). Devuelve la URL
- * pública para que el storefront la pase en `/store/custom-orders/cart`.
+ * POST /store/reviews/upload
+ * Recibe una foto de la reseña del cliente (multipart, field `file`) y la
+ * sube vía FileModule (R2 en prod, local en dev). Devuelve la URL pública
+ * para que el storefront la pase en `images[]` del POST /store/reviews.
  *
- * Acepta hasta 20 MB. Extensiones recomendadas (no se valida hoy):
- *   PNG, JPG, SVG, PDF, AI, EPS.
+ * Acepta JPEG, PNG y WebP hasta 8 MB (el límite de tamaño lo aplica multer
+ * en el middleware; aquí validamos el tipo).
  */
 export async function POST(req: MulterRequest, res: MedusaResponse) {
   if (!req.file) {
     throw new MedusaError(MedusaError.Types.INVALID_DATA, 'No se ha recibido archivo.')
   }
 
+  if (!ALLOWED_MIME.includes(req.file.mimetype)) {
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      'Formato no admitido. Sube una imagen JPG, PNG o WebP.',
+    )
+  }
+
   const fileService: any = req.scope.resolve(Modules.FILE)
 
-  // Prefijo legible para agrupar las subidas de diseños de pedidos
-  // personalizados. NOTA: el provider R2 (file-s3) descarta el path con barras,
-  // así que esto NO crea carpetas reales en R2 — solo agrupa por prefijo de
-  // nombre de archivo.
+  // Sanitiza el nombre (evita caracteres raros en la key de R2) y lo prefija
+  // para agrupar las fotos de reseñas.
   const sanitized = req.file.originalname.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '')
-  const prefixedFilename = `custom-orders__diseno__${sanitized || 'archivo'}`
+  const prefixedFilename = `reviews__${sanitized || 'imagen'}`
 
   const [uploaded] = await fileService.createFiles([
     {

@@ -8,6 +8,7 @@ export interface ProductReview {
   rating: number
   title: string | null
   content: string | null
+  images: string[] | null
   verified_purchase: boolean
   admin_response: string | null
   created_at: string

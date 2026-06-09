@@ -41,6 +41,14 @@ function sumRevenue(orders: OrderLite[]): number {
   return orders.reduce((acc, o) => acc + (Number(o.total) || 0), 0)
 }
 
+/**
+ * Total facturado acumulado de todo el array cargado (sin filtro de ventana).
+ * `order.total` ya es DECIMAL en euros, no se divide /100.
+ */
+export function totalRevenue(orders: OrderLite[]): number {
+  return sumRevenue(orders)
+}
+
 function percentDelta(curr: number, prev: number): number | null {
   if (prev === 0) return curr === 0 ? 0 : null
   return ((curr - prev) / prev) * 100

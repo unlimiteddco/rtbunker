@@ -40,10 +40,27 @@ export const CreateCustomOrderSchema = z.object({
 })
 export type CreateCustomOrderSchema = z.infer<typeof CreateCustomOrderSchema>
 
+// Soporta lote (varios mockups en una sola llamada) manteniendo compat con el
+// formato antiguo de un único proof ({ url, file_name }). El route normaliza
+// cualquiera de las dos formas a un array de proofs y valida que llegue al
+// menos uno (no usamos `.refine()` aquí porque `validateAndTransformBody`
+// requiere un ZodObject plano, no un ZodEffects).
 export const AddProofSchema = z.object({
-  url: z.string().url(),
-  file_name: z.string().optional().nullable(),
-  admin_notes: z.string().optional().nullable(),
+  // Lote: lista de proofs a adjuntar de una vez.
+  proofs: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        file_name: z.string().nullable().optional(),
+      }),
+    )
+    .min(1)
+    .optional(),
+  // Compat single: un único proof inline.
+  url: z.string().url().optional(),
+  file_name: z.string().nullable().optional(),
+  // Notas del mockup (van al email del cliente). Comunes a todo el lote.
+  admin_notes: z.string().nullable().optional(),
 })
 export type AddProofSchema = z.infer<typeof AddProofSchema>
 
