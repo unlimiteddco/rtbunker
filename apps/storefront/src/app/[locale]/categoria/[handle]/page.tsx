@@ -18,8 +18,15 @@ interface CategoryPageProps {
 }
 
 export async function generateStaticParams() {
-  const categories = await listCategories()
-  return categories.map((c) => ({ handle: c.handle }))
+  // Si el backend no está accesible en build-time (p. ej. al construir la
+  // imagen Docker en CI), no pre-generamos nada: las categorías se renderizan
+  // bajo demanda en runtime (dynamicParams es true por defecto).
+  try {
+    const categories = await listCategories()
+    return categories.map((c) => ({ handle: c.handle }))
+  } catch {
+    return []
+  }
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
