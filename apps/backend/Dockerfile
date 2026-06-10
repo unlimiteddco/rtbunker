@@ -28,15 +28,18 @@ ENV NODE_ENV=production
 RUN npx medusa build
 
 # ─── runtime ────────────────────────────────────────────────────────
+# Patrón oficial de Medusa: la app de producción es el output compilado de
+# `medusa build` (.medusa/server), que es autocontenido (package.json +
+# medusa-config.js YA en JS — sin TypeScript en runtime). Se instalan solo
+# las deps de producción en un directorio limpio.
 FROM node:20-alpine AS runner
-WORKDIR /app/apps/backend
+WORKDIR /app
 RUN apk add --no-cache libc6-compat
 ENV NODE_ENV=production
 
-COPY --from=builder /app/apps/backend/.medusa/server ./.medusa/server
-COPY --from=builder /app/apps/backend/package.json ./package.json
-COPY --from=builder /app/apps/backend/medusa-config.ts ./medusa-config.ts
-COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/apps/backend/.medusa/server ./
+RUN npm install --omit=dev --no-audit --no-fund
 
 EXPOSE 9000
-CMD ["sh", "-c", "npx medusa db:migrate && node .medusa/server/server.js"]
+# db:migrate carga el medusa-config.js compilado; luego arranca el server.
+CMD ["sh", "-c", "npx medusa db:migrate && npm run start"]
