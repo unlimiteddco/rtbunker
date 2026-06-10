@@ -9,7 +9,10 @@ RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json* ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/config/package.json ./packages/config/
-RUN npm ci --include-workspace-root --workspace=apps/backend --workspace=packages/config
+# --no-audit/--no-fund acelera; --loglevel/--foreground-scripts hace visible
+# el progreso (sin esto npm calla minutos y parece colgado).
+RUN npm ci --include-workspace-root --workspace=apps/backend --workspace=packages/config \
+    --no-audit --no-fund --loglevel=notice --foreground-scripts
 
 # ─── build ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder

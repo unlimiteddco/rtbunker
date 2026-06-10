@@ -12,17 +12,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
   const productSlugs: string[] = []
-  let offset = 0
-  const limit = 100
-  while (true) {
-    const { products, count } = await sdk.store.product.list({
-      fields: 'handle',
-      limit,
-      offset,
-    })
-    productSlugs.push(...products.map((p) => p.handle).filter(Boolean) as string[])
-    offset += products.length
-    if (offset >= count || products.length === 0) break
+  // Si el backend no es alcanzable (p. ej. durante el build de la imagen
+  // Docker), emitimos el sitemap sin productos en vez de romper el build;
+  // con revalidate=3600 se completará en runtime.
+  try {
+    let offset = 0
+    const limit = 100
+    while (true) {
+      const { products, count } = await sdk.store.product.list({
+        fields: 'handle',
+        limit,
+        offset,
+      })
+      productSlugs.push(...products.map((p) => p.handle).filter(Boolean) as string[])
+      offset += products.length
+      if (offset >= count || products.length === 0) break
+    }
+  } catch {
+    // backend no disponible — sitemap parcial
   }
 
   const cmsSlugs = listCmsSlugs()

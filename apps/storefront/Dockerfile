@@ -11,7 +11,8 @@ COPY packages/config/package.json ./packages/config/
 RUN npm ci --include-workspace-root \
     --workspace=apps/storefront \
     --workspace=packages/ui \
-    --workspace=packages/config
+    --workspace=packages/config \
+    --no-audit --no-fund --loglevel=notice --foreground-scripts
 
 # ─── build ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
