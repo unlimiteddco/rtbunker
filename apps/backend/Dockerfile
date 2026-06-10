@@ -25,6 +25,11 @@ COPY apps/backend ./apps/backend
 
 WORKDIR /app/apps/backend
 ENV NODE_ENV=production
+# La URL del backend se "quema" en el bundle del admin durante `medusa build`
+# (admin.backendUrl). Sin esto, el admin desplegado llama a localhost:9000 y
+# da "Failed to fetch" en el login. Se pasa como build-arg.
+ARG MEDUSA_BACKEND_URL=http://localhost:9000
+ENV MEDUSA_BACKEND_URL=$MEDUSA_BACKEND_URL
 RUN npx medusa build
 
 # ─── runtime ────────────────────────────────────────────────────────
