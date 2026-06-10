@@ -8,13 +8,20 @@ import { sdk } from './medusa'
  */
 export const getRegion = cache(async (countryCode: string) => {
   const code = countryCode.toLowerCase()
-  const { regions } = await sdk.store.region.list(
-    {},
-    { next: { revalidate: 3600, tags: ['regions'] } } as RequestInit,
-  )
-
-  const region = regions.find((r) => r.countries?.some((c) => c.iso_2 === code))
-  return region ?? regions[0]
+  try {
+    const { regions } = await sdk.store.region.list(
+      {},
+      { next: { revalidate: 3600, tags: ['regions'] } } as RequestInit,
+    )
+    const region = regions.find((r) => r.countries?.some((c) => c.iso_2 === code))
+    return region ?? regions[0]
+  } catch {
+    // Backend no accesible (p. ej. en build-time): región stub para no romper
+    // el render; en runtime con backend vivo se resuelve la real.
+    return { id: '', name: 'default', countries: [] } as Awaited<
+      ReturnType<typeof sdk.store.region.list>
+    >['regions'][number]
+  }
 })
 
 export const listRegions = cache(async () => {

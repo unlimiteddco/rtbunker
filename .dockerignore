@@ -1,0 +1,30 @@
+# Docker solo lee el .dockerignore del contexto (la raíz del monorepo).
+# Excluimos artefactos de build y deps para que la imagen parta SIEMPRE de
+# fuente limpio: si se cuela un .medusa/.next/tsbuildinfo viejo, tsc se salta
+# la compilación dentro de Docker y la imagen sale rota.
+**/node_modules
+**/.medusa
+**/.next
+**/dist
+**/build
+**/.turbo
+**/coverage
+**/*.tsbuildinfo
+
+.git
+.github
+.vscode
+.idea
+
+# Nunca meter secretos ni dumps en la imagen
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.staging.example
+dumps
+**/*.dump
+**/*.sql
+
+**/*.log
+**/.DS_Store
+docs

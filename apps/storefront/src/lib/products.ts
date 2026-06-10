@@ -15,21 +15,26 @@ export interface ListProductsParams {
 
 export const listProducts = cache(async (params: ListProductsParams) => {
   const region = await getRegion(params.countryCode)
-  const { products, count, limit, offset } = await sdk.store.product.list(
-    {
-      region_id: region.id,
-      fields:
-        '*variants.calculated_price,+variants.inventory_quantity,*categories,*collection,*images',
-      limit: params.limit ?? 12,
-      offset: params.offset ?? 0,
-      ...(params.category_id ? { category_id: params.category_id } : {}),
-      ...(params.collection_id ? { collection_id: params.collection_id } : {}),
-      ...(params.q ? { q: params.q } : {}),
-      ...(params.order ? { order: params.order } : {}),
-    },
-    { next: { revalidate: 60, tags: ['products'] } } as RequestInit,
-  )
-  return { products, count, limit, offset, region }
+  try {
+    const { products, count, limit, offset } = await sdk.store.product.list(
+      {
+        region_id: region.id,
+        fields:
+          '*variants.calculated_price,+variants.inventory_quantity,*categories,*collection,*images',
+        limit: params.limit ?? 12,
+        offset: params.offset ?? 0,
+        ...(params.category_id ? { category_id: params.category_id } : {}),
+        ...(params.collection_id ? { collection_id: params.collection_id } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.order ? { order: params.order } : {}),
+      },
+      { next: { revalidate: 60, tags: ['products'] } } as RequestInit,
+    )
+    return { products, count, limit, offset, region }
+  } catch {
+    // Backend no accesible en build-time: lista vacía (no rompe el build).
+    return { products: [], count: 0, limit: params.limit ?? 12, offset: params.offset ?? 0, region }
+  }
 })
 
 export const getProductByHandle = cache(async (handle: string, countryCode: string) => {
@@ -47,14 +52,19 @@ export const getProductByHandle = cache(async (handle: string, countryCode: stri
 })
 
 export const listCategories = cache(async () => {
-  const { product_categories } = await sdk.store.category.list(
-    {
-      fields: 'id,name,handle,description,rank,parent_category.id,parent_category.name',
-      limit: 200,
-    },
-    { next: { revalidate: 3600, tags: ['categories'] } } as RequestInit,
-  )
-  return product_categories
+  try {
+    const { product_categories } = await sdk.store.category.list(
+      {
+        fields: 'id,name,handle,description,rank,parent_category.id,parent_category.name',
+        limit: 200,
+      },
+      { next: { revalidate: 3600, tags: ['categories'] } } as RequestInit,
+    )
+    return product_categories
+  } catch {
+    // Backend no accesible en build-time: sin categorías (no rompe el build).
+    return [] as Awaited<ReturnType<typeof sdk.store.category.list>>['product_categories']
+  }
 })
 
 type RawCategory = Awaited<ReturnType<typeof listCategories>>[number]
