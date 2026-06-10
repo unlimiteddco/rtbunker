@@ -18,6 +18,14 @@ loadEnv(process.env.NODE_ENV ?? 'development', process.cwd())
 export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    // El Postgres interno de Dokploy NO tiene SSL. Sin esto, Medusa en
+    // producción intenta SSL y falla con "server does not support SSL
+    // connections". Para una BD gestionada que lo requiera: DATABASE_SSL=true.
+    databaseDriverOptions: {
+      connection: {
+        ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      },
+    },
     redisUrl: process.env.REDIS_URL,
     workerMode: (process.env.MEDUSA_WORKER_MODE ?? 'shared') as 'shared' | 'server' | 'worker',
     http: {
