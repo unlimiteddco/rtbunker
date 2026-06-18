@@ -31,17 +31,22 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { locale, handle } = await params
-  const match = await getCategoryByHandle(handle)
-  if (!match) return { title: 'Categoría · RT Bunker' }
-  const { category } = match
-  const description =
-    category.description?.trim() ||
-    `Compra ${category.name.toLowerCase()} en RT Bunker. Vinilo premium fabricado en España con envío en 24–48 h.`
-  return {
-    title: `${category.name} · RT Bunker`,
-    description,
-    alternates: { canonical: `/${locale}/categoria/${handle}` },
-    openGraph: { title: `${category.name} · RT Bunker`, description },
+  try {
+    const match = await getCategoryByHandle(handle)
+    if (!match) return { title: 'Categoría · RT Bunker' }
+    const { category } = match
+    const description =
+      category.description?.trim() ||
+      `Compra ${category.name.toLowerCase()} en RT Bunker. Vinilo premium fabricado en España con envío en 24–48 h.`
+    return {
+      title: `${category.name} · RT Bunker`,
+      description,
+      alternates: { canonical: `/${locale}/categoria/${handle}` },
+      openGraph: { title: `${category.name} · RT Bunker`, description },
+    }
+  } catch (error) {
+    console.error(`[categoria/${handle}] generateMetadata falló:`, error)
+    return { title: 'Categoría · RT Bunker' }
   }
 }
 
@@ -50,7 +55,15 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const { order, page } = await searchParams
   setRequestLocale(locale)
 
-  const match = await getCategoryByHandle(handle)
+  // La categoría puede no existir (handle inválido) o el backend puede fallar.
+  // En el primer caso → 404 limpio; en el segundo no rompemos con un 500.
+  let match: Awaited<ReturnType<typeof getCategoryByHandle>>
+  try {
+    match = await getCategoryByHandle(handle)
+  } catch (error) {
+    console.error(`[categoria/${handle}] getCategoryByHandle lanzó:`, error)
+    notFound()
+  }
   if (!match) notFound()
   const { category, descendantIds } = match
 
@@ -59,16 +72,28 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const currentPage = parseInt(page ?? '1', 10) || 1
   const offset = (currentPage - 1) * limit
 
-  const [categoryTree, { products, count }] = await Promise.all([
-    getCategoryTree(),
-    listProducts({
-      countryCode: locale,
-      limit,
-      offset,
-      category_id: descendantIds,
-      ...(order ? { order } : {}),
-    }),
-  ])
+  // Si el árbol de categorías o el listado de productos falla en runtime,
+  // renderizamos la categoría con los datos disponibles (vacío) en vez de 500.
+  let categoryTree: Awaited<ReturnType<typeof getCategoryTree>> = []
+  let products: Awaited<ReturnType<typeof listProducts>>['products'] = []
+  let count = 0
+  try {
+    const [tree, productsResult] = await Promise.all([
+      getCategoryTree(),
+      listProducts({
+        countryCode: locale,
+        limit,
+        offset,
+        category_id: descendantIds,
+        ...(order ? { order } : {}),
+      }),
+    ])
+    categoryTree = tree
+    products = productsResult.products
+    count = productsResult.count
+  } catch (error) {
+    console.error(`[categoria/${handle}] fallo al cargar árbol/productos:`, error)
+  }
 
   const totalPages = Math.ceil(count / limit)
   const buildHref = (n: number) =>

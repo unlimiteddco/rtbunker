@@ -144,9 +144,16 @@ export async function POST(
   }
 
   // 3. Añade el line item con price override + metadata
+  // Normalizamos la config para que product_type y cut_type queden siempre
+  // presentes en la metadata (null cuando el cliente no los envía).
+  const normalizedConfig = {
+    ...body.config,
+    product_type: body.config.product_type ?? null,
+    cut_type: body.config.cut_type ?? null,
+  }
   const lineMetadata: Record<string, unknown> = {
     custom_request: true,
-    config: body.config,
+    config: normalizedConfig,
     design_file_url: body.design_file_url ?? null,
     design_file_name: body.design_file_name ?? null,
     customer_notes: body.customer_notes ?? null,

@@ -14,6 +14,7 @@ import { MaterialSwatch, ShapeGlyph, SizeGlyph } from './glyphs'
 import { OptionCard } from './option-card'
 import {
   CREDIT_MAX_SIDE_CM,
+  CUT_TYPES,
   MATERIALS,
   MAX_DIM_CM,
   MAX_QTY,
@@ -26,10 +27,13 @@ import {
   isCreditEligibleSize,
   nextTier,
   priceForArea,
+  type CutTypeId,
   type MaterialId,
   type ShapeId,
   type SizeId,
 } from './pricing'
+import { CM2_PER_SQIN } from './pricing-data'
+import { DEFAULT_PRODUCT_TYPE, PRODUCT_TYPES, type ProductTypeId } from './product-types'
 import { Upload, type UploadedFile } from './upload'
 
 interface PersonalizadasCompactProps {
@@ -63,7 +67,9 @@ export function PersonalizadasCompact({
 }: PersonalizadasCompactProps) {
   void _contactEmail
   const router = useRouter()
+  const [productType, setProductType] = useState<ProductTypeId>(DEFAULT_PRODUCT_TYPE)
   const [shape, setShape] = useState<ShapeId>('square')
+  const [cutType, setCutType] = useState<CutTypeId>('kiss_cut')
   const [material, setMaterial] = useState<MaterialId>('mate')
   const [sizeMode, setSizeMode] = useState<'preset' | 'custom'>('preset')
   const [size, setSize] = useState<SizeId>('m')
@@ -74,7 +80,9 @@ export function PersonalizadasCompact({
   const [submitting, setSubmitting] = useState(false)
   const [payWithCredits, setPayWithCredits] = useState(false)
 
+  const pt = PRODUCT_TYPES.find((p) => p.id === productType)!
   const sh = SHAPES.find((s) => s.id === shape)!
+  const ct = CUT_TYPES.find((c) => c.id === cutType)!
   const ma = MATERIALS.find((m) => m.id === material)!
   const sz = SIZES.find((s) => s.id === size)!
 
@@ -86,9 +94,10 @@ export function PersonalizadasCompact({
     return { w, h, cm2: w * h }
   }, [customW, customH])
 
-  const baseForSize = useMemo(() => {
-    if (sizeMode === 'custom') return customDims ? priceForArea(customDims.cm2) : 0
-    return sz.base
+  // Superficie efectiva en cm² (preset = lado², custom = ancho×alto).
+  const cm2 = useMemo(() => {
+    if (sizeMode === 'custom') return customDims ? customDims.cm2 : 0
+    return sz.cm2
   }, [sizeMode, customDims, sz])
 
   const sizeLabel =
@@ -115,12 +124,12 @@ export function PersonalizadasCompact({
   const creditsUsed = creditsMode ? clampedUnits : 0
 
   const breakdown = useMemo(
-    () => computePrice({ shape: sh, material: ma, baseForSize, units: clampedUnits }),
-    [sh, ma, baseForSize, clampedUnits],
+    () => computePrice({ shape: sh, material: ma, cm2, units: clampedUnits }),
+    [sh, ma, cm2, clampedUnits],
   )
   const next = nextTier(clampedUnits)
-  const discountNow = currentDiscount(clampedUnits)
-  const ready = baseForSize > 0 && Boolean(file)
+  const discountNow = currentDiscount(clampedUnits, cm2 / CM2_PER_SQIN)
+  const ready = cm2 > 0 && Boolean(file)
 
   function setUnitsSafe(n: number) {
     if (!Number.isFinite(n)) return
@@ -145,7 +154,7 @@ export function PersonalizadasCompact({
       toast.error('Sube tu diseño antes de continuar')
       return
     }
-    if (baseForSize <= 0) {
+    if (cm2 <= 0) {
       toast.error('Define el tamaño antes de continuar')
       return
     }
@@ -167,7 +176,9 @@ export function PersonalizadasCompact({
 
       await addCustomOrderToCart({
         config: {
+          product_type: productType,
           shape,
+          cut_type: cutType,
           material,
           size_id: sizeMode === 'preset' ? size : null,
           width_cm: sizeMode === 'custom' ? customDims?.w ?? null : null,
@@ -209,11 +220,32 @@ export function PersonalizadasCompact({
         </div>
       </section>
 
-      {/* ─── 4 cols arriba ─────────────────────────────────── */}
+      {/* ─── Tipo de producto (paso 1, ancho completo) ─────── */}
+      <section className="container-page pb-4">
+        <CompactStep n={1} title="Tipo de producto">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+            {PRODUCT_TYPES.map((p) => (
+              <ProductTypeCard
+                key={p.id}
+                selected={productType === p.id}
+                disabled={!p.enabled}
+                comingSoon={p.comingSoon}
+                onClick={() => {
+                  if (p.enabled) setProductType(p.id)
+                }}
+              >
+                {p.name}
+              </ProductTypeCard>
+            ))}
+          </div>
+        </CompactStep>
+      </section>
+
+      {/* ─── 4 cols (Forma · Acabado · Tamaño · Unidades) ───── */}
       <section className="container-page pb-4">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {/* Step 1 — Forma */}
-          <CompactStep n={1} title="Forma">
+          {/* Step 2 — Forma + tipo de corte */}
+          <CompactStep n={2} title="Forma">
             <div className="grid grid-cols-2 gap-2">
               {SHAPES.map((s) => (
                 <OptionCard
@@ -230,10 +262,36 @@ export function PersonalizadasCompact({
                 </OptionCard>
               ))}
             </div>
+            {/* Tipo de corte */}
+            <div className="flex flex-col gap-1.5">
+              <span className="font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[0.14em] text-rt-ink-500">
+                Tipo de corte
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                {CUT_TYPES.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCutType(c.id)}
+                    aria-pressed={cutType === c.id}
+                    className={cn(
+                      'rounded-[12px] border-[1.5px] px-2.5 py-2 text-left transition-colors',
+                      cutType === c.id
+                        ? 'border-rt-black bg-rt-black text-rt-white'
+                        : 'border-rt-ink-100 bg-rt-white text-rt-black hover:border-rt-black',
+                    )}
+                  >
+                    <span className="font-[family-name:var(--font-heading)] text-[12px] font-bold leading-tight">
+                      {c.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </CompactStep>
 
-          {/* Step 2 — Material */}
-          <CompactStep n={2} title="Material">
+          {/* Step 3 — Acabado */}
+          <CompactStep n={3} title="Acabado">
             <div className="grid grid-cols-2 gap-2">
               {MATERIALS.map((m) => (
                 <OptionCard
@@ -253,7 +311,7 @@ export function PersonalizadasCompact({
           </CompactStep>
 
           {/* Step 3 — Tamaño */}
-          <CompactStep n={3} title="Tamaño">
+          <CompactStep n={4} title="Tamaño">
             {/* 4 tamaños estándar siempre visibles. */}
             <div className="grid grid-cols-2 gap-2">
               {SIZES.map((s) => (
@@ -361,7 +419,7 @@ export function PersonalizadasCompact({
           </CompactStep>
 
           {/* Step 4 — Unidades */}
-          <CompactStep n={4} title="Unidades">
+          <CompactStep n={5} title="Unidades">
             {/* Toggle pagar con créditos (solo socios con saldo) */}
             {availableCredits > 0 ? (
               creditEligible ? (
@@ -492,7 +550,7 @@ export function PersonalizadasCompact({
       <section className="container-page pb-12">
         <div className="grid items-start gap-3 md:grid-cols-[1.5fr_1fr]">
           {/* Subir archivo */}
-          <CompactStep n={5} title="Sube tu diseño">
+          <CompactStep n={6} title="Sube tu diseño">
             <Upload file={file} onFile={setFile} onClear={() => setFile(null)} />
           </CompactStep>
 
@@ -513,8 +571,10 @@ export function PersonalizadasCompact({
               ) : null}
             </header>
             <ul className="flex flex-col gap-1.5 border-y border-rt-ink-100 py-2.5 text-[12px]">
+              <SummaryRow label="Producto" value={pt.name} />
               <SummaryRow label="Forma" value={sh.name} />
-              <SummaryRow label="Material" value={ma.name} />
+              <SummaryRow label="Corte" value={ct.name} />
+              <SummaryRow label="Acabado" value={ma.name} />
               <SummaryRow label="Tamaño" value={sizeLabel} />
               <SummaryRow label="Unidades" value={String(clampedUnits)} />
               {creditsMode ? (
@@ -610,6 +670,53 @@ function CompactStep({
       </header>
       <div className="flex flex-col gap-2">{children}</div>
     </section>
+  )
+}
+
+/* ─── Tarjeta de tipo de producto (con estado "Próximamente") ── */
+
+function ProductTypeCard({
+  selected,
+  disabled = false,
+  comingSoon = false,
+  onClick,
+  children,
+}: {
+  selected: boolean
+  disabled?: boolean | undefined
+  comingSoon?: boolean | undefined
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={selected}
+      className={cn(
+        'relative flex min-h-[60px] flex-col items-center justify-center gap-1 rounded-[14px] border-[1.5px] px-3 py-2.5 text-center transition-colors',
+        disabled
+          ? 'cursor-not-allowed border-rt-ink-100 bg-rt-white-2 text-rt-ink-300'
+          : selected
+            ? 'border-rt-black bg-rt-black text-rt-white'
+            : 'border-rt-ink-100 bg-rt-white text-rt-black hover:border-rt-black',
+      )}
+    >
+      <span
+        className={cn(
+          'font-[family-name:var(--font-heading)] text-[12px] font-bold leading-tight',
+          disabled && 'line-through decoration-[1.5px]',
+        )}
+      >
+        {children}
+      </span>
+      {comingSoon ? (
+        <span className="font-[family-name:var(--font-heading)] text-[9px] font-bold uppercase tracking-[0.12em] text-rt-ink-300">
+          Próximamente
+        </span>
+      ) : null}
+    </button>
   )
 }
 

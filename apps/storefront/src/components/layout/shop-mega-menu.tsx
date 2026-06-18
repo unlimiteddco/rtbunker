@@ -64,7 +64,6 @@ export function ShopMegaMenu({ roots, linkClass }: ShopMegaMenuProps) {
         <div className="container-page grid gap-8 py-7 md:grid-cols-[1fr_minmax(200px,260px)] md:py-9">
           {/* Categorías con foto */}
           <div>
-            <p className="text-eyebrow mb-4 text-rt-yellow-deep">Categorías</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {cards.map((cat) => (
                 <Link

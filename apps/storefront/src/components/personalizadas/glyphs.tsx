@@ -1,7 +1,7 @@
 /**
  * Glifos / swatches del configurador.
  *   • ShapeGlyph   — 4 formas (rect, square, circle, custom).
- *   • MaterialSwatch — 4 acabados (mate, brillo, holo, refl).
+ *   • MaterialSwatch — 2 acabados (mate, brillo).
  *   • SizeGlyph    — marcas de corte de vinilo con un rectángulo escalado
  *                    dentro que representa el tamaño relativo.
  */
@@ -62,10 +62,6 @@ export function MaterialSwatch({ id, size = 40 }: MaterialSwatchProps) {
       border: '1px solid #E3E3E1',
       boxShadow: 'inset -10px -10px 0 rgba(10,186,181,0.18)',
     },
-    holo: {
-      background: 'conic-gradient(from 180deg, #FFBA01, #C8321F, #1F62C8, #1B7A3E, #FFBA01)',
-    },
-    refl: { background: 'linear-gradient(135deg, #E3E3E1, #FCFCFC 40%, #B3B3B3)' },
   }
   return (
     <div

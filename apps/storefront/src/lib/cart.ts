@@ -218,8 +218,10 @@ export async function resetCartCookie() {
 
 export interface AddCustomOrderToCartInput {
   config: {
+    product_type?: 'vinyls' | 'sheets' | 'holo' | 'glitter' | 'chrome' | null
     shape: 'rect' | 'square' | 'circle' | 'custom'
-    material: 'mate' | 'brillo' | 'holo' | 'refl'
+    cut_type?: 'kiss_cut' | 'die_cut' | null
+    material: 'mate' | 'brillo'
     size_id?: 's' | 'm' | 'l' | 'xl' | null
     width_cm?: number | null
     height_cm?: number | null

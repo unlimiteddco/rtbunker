@@ -17,7 +17,7 @@ const INFO_ITEMS: InfoItem[] = [
   {
     icon: MapPin,
     label: 'Dirección',
-    primary: 'Calle Forqueta · 50410',
+    primary: 'Calle Neto, nave 15 · 50410', // TODO confirmar CP y ciudad
     secondary: 'Cuarte de Huerva, Zaragoza',
   },
   {

@@ -13,6 +13,7 @@ import { sdk } from '@/lib/medusa'
 import { MaterialSwatch, ShapeGlyph, SizeGlyph } from './glyphs'
 import { OptionCard } from './option-card'
 import {
+  CUT_TYPES,
   MATERIALS,
   MAX_DIM_CM,
   MAX_QTY,
@@ -24,10 +25,13 @@ import {
   currentDiscount,
   nextTier,
   priceForArea,
+  type CutTypeId,
   type MaterialId,
   type ShapeId,
   type SizeId,
 } from './pricing'
+import { CM2_PER_SQIN } from './pricing-data'
+import { DEFAULT_PRODUCT_TYPE, PRODUCT_TYPES, type ProductTypeId } from './product-types'
 import { Upload, type UploadedFile } from './upload'
 
 interface PersonalizadasShellProps {
@@ -42,7 +46,9 @@ export function PersonalizadasShell({
 }: PersonalizadasShellProps) {
   void _contactEmail
   const router = useRouter()
+  const [productType, setProductType] = useState<ProductTypeId>(DEFAULT_PRODUCT_TYPE)
   const [shape, setShape] = useState<ShapeId>('square')
+  const [cutType, setCutType] = useState<CutTypeId>('kiss_cut')
   const [material, setMaterial] = useState<MaterialId>('mate')
   const [sizeMode, setSizeMode] = useState<'preset' | 'custom'>('preset')
   const [size, setSize] = useState<SizeId>('m')
@@ -52,7 +58,9 @@ export function PersonalizadasShell({
   const [file, setFile] = useState<UploadedFile | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  const pt = PRODUCT_TYPES.find((p) => p.id === productType)!
   const sh = SHAPES.find((s) => s.id === shape)!
+  const ct = CUT_TYPES.find((c) => c.id === cutType)!
   const ma = MATERIALS.find((m) => m.id === material)!
   const sz = SIZES.find((s) => s.id === size)!
 
@@ -65,11 +73,10 @@ export function PersonalizadasShell({
     return { w, h, cm2: w * h }
   }, [customW, customH])
 
-  const baseForSize = useMemo(() => {
-    if (sizeMode === 'custom') {
-      return customDims ? priceForArea(customDims.cm2) : 0
-    }
-    return sz.base
+  // Superficie efectiva en cm² (preset = lado², custom = ancho×alto).
+  const cm2 = useMemo(() => {
+    if (sizeMode === 'custom') return customDims ? customDims.cm2 : 0
+    return sz.cm2
   }, [sizeMode, customDims, sz])
 
   const sizeLabel =
@@ -85,15 +92,15 @@ export function PersonalizadasShell({
       computePrice({
         shape: sh,
         material: ma,
-        baseForSize,
+        cm2,
         units: clampedUnits,
       }),
-    [sh, ma, baseForSize, clampedUnits],
+    [sh, ma, cm2, clampedUnits],
   )
 
   const next = nextTier(clampedUnits)
-  const discountNow = currentDiscount(clampedUnits)
-  const ready = baseForSize > 0 && Boolean(file)
+  const discountNow = currentDiscount(clampedUnits, cm2 / CM2_PER_SQIN)
+  const ready = cm2 > 0 && Boolean(file)
 
   /* ─── helpers de qty ───────────────────────────────────── */
   function setUnitsSafe(n: number) {
@@ -106,7 +113,7 @@ export function PersonalizadasShell({
       toast.error('Sube tu diseño antes de continuar')
       return
     }
-    if (baseForSize <= 0) {
+    if (cm2 <= 0) {
       toast.error('Define el tamaño antes de continuar')
       return
     }
@@ -131,7 +138,9 @@ export function PersonalizadasShell({
       // 2. Añadir al carrito con config + price override + metadata.
       await addCustomOrderToCart({
         config: {
+          product_type: productType,
           shape,
+          cut_type: cutType,
           material,
           size_id: sizeMode === 'preset' ? size : null,
           width_cm: sizeMode === 'custom' ? customDims?.w ?? null : null,
@@ -175,7 +184,28 @@ export function PersonalizadasShell({
         <div className="grid items-start gap-5 lg:grid-cols-[1.7fr_1fr]">
           {/* Steps */}
           <div className="grid gap-5 md:grid-cols-2">
-            <Step n={1} title="Forma">
+            <div className="md:col-span-2">
+              <Step n={1} title="Tipo de producto">
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                  {PRODUCT_TYPES.map((p) => (
+                    <ProductTypeCard
+                      key={p.id}
+                      selected={productType === p.id}
+                      disabled={!p.enabled}
+                      comingSoon={p.comingSoon}
+                      onClick={() => {
+                        if (p.enabled) setProductType(p.id)
+                      }}
+                      desc={p.desc}
+                    >
+                      {p.name}
+                    </ProductTypeCard>
+                  ))}
+                </div>
+              </Step>
+            </div>
+
+            <Step n={2} title="Forma">
               <div className="grid grid-cols-2 gap-2.5">
                 {SHAPES.map((s) => (
                   <OptionCard
@@ -200,9 +230,43 @@ export function PersonalizadasShell({
                   </OptionCard>
                 ))}
               </div>
+
+              {/* Tipo de corte */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-rt-ink-500 font-[family-name:var(--font-heading)]">
+                  Tipo de corte
+                </span>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {CUT_TYPES.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setCutType(c.id)}
+                      aria-pressed={cutType === c.id}
+                      className={cn(
+                        'rounded-[14px] border-[1.5px] px-3.5 py-2.5 text-left transition-colors',
+                        cutType === c.id
+                          ? 'border-rt-black bg-rt-black text-rt-white'
+                          : 'border-rt-ink-100 bg-rt-white text-rt-black hover:border-rt-black',
+                      )}
+                    >
+                      <p className="font-[family-name:var(--font-heading)] text-[13px] font-bold">
+                        {c.name}
+                      </p>
+                      <p
+                        className={`mt-0.5 text-[11px] font-medium leading-[1.4] ${
+                          cutType === c.id ? 'text-rt-ink-300' : 'text-rt-ink-500'
+                        }`}
+                      >
+                        {c.desc}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </Step>
 
-            <Step n={2} title="Material">
+            <Step n={3} title="Acabado">
               <div className="grid grid-cols-2 gap-2.5">
                 {MATERIALS.map((m) => (
                   <OptionCard
@@ -229,7 +293,7 @@ export function PersonalizadasShell({
               </div>
             </Step>
 
-            <Step n={3} title="Tamaño">
+            <Step n={4} title="Tamaño">
               {/* Toggle preset / custom */}
               <div className="inline-flex rounded-full border border-rt-ink-100 bg-rt-white-2 p-1 text-[12px] font-bold uppercase tracking-[0.12em] font-[family-name:var(--font-heading)]">
                 <button
@@ -297,7 +361,7 @@ export function PersonalizadasShell({
               )}
             </Step>
 
-            <Step n={4} title="Unidades">
+            <Step n={5} title="Unidades">
               <div className="flex flex-wrap gap-1.5">
                 {QUICK_QTY.map((n) => (
                   <button
@@ -387,7 +451,9 @@ export function PersonalizadasShell({
 
           {/* Resumen sticky */}
           <Summary
+            productType={pt.name}
             shape={sh.name}
+            cutType={ct.name}
             material={ma.name}
             sizeLabel={sizeLabel}
             units={clampedUnits}
@@ -405,7 +471,7 @@ export function PersonalizadasShell({
 
       {/* ─── Upload ────────────────────────────────────────── */}
       <section className="container-page pb-10">
-        <Step n={5} title="Sube tu diseño">
+        <Step n={6} title="Sube tu diseño">
           <Upload file={file} onFile={setFile} onClear={() => setFile(null)} />
         </Step>
       </section>
@@ -458,6 +524,64 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
       </header>
       <div className="flex flex-col gap-3">{children}</div>
     </section>
+  )
+}
+
+/* ─── Tarjeta de tipo de producto (con estado "Próximamente") ── */
+
+function ProductTypeCard({
+  selected,
+  disabled = false,
+  comingSoon = false,
+  onClick,
+  desc,
+  children,
+}: {
+  selected: boolean
+  disabled?: boolean | undefined
+  comingSoon?: boolean | undefined
+  onClick: () => void
+  desc?: string | undefined
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={selected}
+      className={cn(
+        'relative flex min-h-[84px] flex-col items-start justify-center gap-1 rounded-[16px] border-[1.5px] px-3.5 py-3 text-left transition-colors',
+        disabled
+          ? 'cursor-not-allowed border-rt-ink-100 bg-rt-white-2 text-rt-ink-300'
+          : selected
+            ? 'border-rt-black bg-rt-black text-rt-white'
+            : 'border-rt-ink-100 bg-rt-white text-rt-black hover:border-rt-black',
+      )}
+    >
+      <span
+        className={cn(
+          'font-[family-name:var(--font-heading)] text-[13px] font-bold leading-tight',
+          disabled && 'line-through decoration-[1.5px]',
+        )}
+      >
+        {children}
+      </span>
+      {comingSoon ? (
+        <span className="font-[family-name:var(--font-heading)] text-[9px] font-bold uppercase tracking-[0.14em] text-rt-ink-300">
+          Próximamente
+        </span>
+      ) : desc ? (
+        <span
+          className={cn(
+            'text-[11px] font-medium leading-[1.35]',
+            selected ? 'text-rt-ink-300' : 'text-rt-ink-500',
+          )}
+        >
+          {desc}
+        </span>
+      ) : null}
+    </button>
   )
 }
 
@@ -537,7 +661,9 @@ function DimInput({
 /* ─── Resumen sticky ──────────────────────────────────────── */
 
 interface SummaryProps {
+  productType: string
   shape: string
+  cutType: string
   material: string
   sizeLabel: string
   units: number
@@ -552,7 +678,9 @@ interface SummaryProps {
 }
 
 function Summary({
+  productType,
   shape,
+  cutType,
   material,
   sizeLabel,
   units,
@@ -579,8 +707,10 @@ function Summary({
       </header>
 
       <ul className="flex flex-col gap-2.5 border-y border-rt-ink-100 py-4 text-[14px]">
+        <SummaryRow label="Producto" value={productType} />
         <SummaryRow label="Forma" value={shape} />
-        <SummaryRow label="Material" value={material} />
+        <SummaryRow label="Corte" value={cutType} />
+        <SummaryRow label="Acabado" value={material} />
         <SummaryRow label="Tamaño" value={sizeLabel} />
         <SummaryRow label="Unidades" value={String(units)} />
         <SummaryRow

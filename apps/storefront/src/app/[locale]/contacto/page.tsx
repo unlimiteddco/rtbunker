@@ -49,9 +49,9 @@ export default async function ContactPage({ params }: ContactPageProps) {
           </InfoRow>
 
           <InfoRow icon={MapPin} title="Dirección">
-            Calle Forqueta
+            Calle Neto, nave 15
             <br />
-            50410 Cuarte de Huerva
+            50410 Cuarte de Huerva {/* TODO confirmar CP y ciudad */}
             <br />
             Zaragoza, España
           </InfoRow>
@@ -63,13 +63,14 @@ export default async function ContactPage({ params }: ContactPageProps) {
           </InfoRow>
 
           <InfoRow icon={Instagram} title="Instagram">
+            {/* TODO Nikita: handle real */}
             <a
-              href="https://instagram.com/rtbunker"
+              href="https://instagram.com/rtbunker_oficial"
               target="_blank"
               rel="noreferrer"
               className="font-semibold text-rt-black hover:text-rt-yellow-deep"
             >
-              @rtbunker
+              @rtbunker_oficial
             </a>
           </InfoRow>
 

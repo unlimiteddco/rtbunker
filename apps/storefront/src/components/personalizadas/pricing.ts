@@ -1,23 +1,36 @@
 /**
- * Personalizadas — modelo de precios.
+ * Personalizadas — modelo de precios (rework reunión Nikita 17-jun).
  *
- * Reglas:
+ * El precio base sale de la tabla de Sticker Shuttle (pricing-data.ts), en
+ * función de la SUPERFICIE en pulgadas² de la pegatina. El descuento por
+ * volumen sale de una matriz cantidad × superficie. Todo en USD tratado 1:1
+ * como EUR, con un −5% global.
+ *
+ *   sqin          = area_cm2 / CM2_PER_SQIN
+ *   baseUSD(sqin) = interpolación lineal sobre BASE_PRICE_POINTS
+ *   discount      = lookup FLOOR en DISCOUNT_MATRIX[cantidad][superficie]
+ *   precioUnidad  = baseUSD(sqin) × (1 − discount) × finishMult × GLOBAL_DISCOUNT_MULT
+ *   total         = precioUnidad × units
+ *
+ * Reglas de forma/acabado:
  *   • Forma básica (Rectángulo / Cuadrado / Círculo) → mult 1.0×
  *   • Forma libre (silueta a medida) → +25%
- *   • Material — Mate base; Brillo +5%; Holográfico +35%; Reflectante +55%
- *   • Tamaño preset → precio base de la tabla SIZES.
- *   • Tamaño custom (ancho × alto en cm) → priceForArea() interpola entre
- *     los puntos S/M/L/XL con extrapolación lineal arriba.
- *   • Cantidad — mínimo 15, máximo 5000 unidades. Tiers de descuento
- *     escalonados (1.0 → 0.30) según factorForUnits().
- *
- *   unitPrice = baseForSize × shape.mult × material.mult × factorForUnits(units)
- *   total     = unitPrice × units
- *   savings   = (baseForSize × shape.mult × material.mult − unitPrice) × units
+ *   • Acabado — Mate y Brillo, ambos 1.0× (mismo precio).
+ *   • Tipo de corte — Corte beso / Troquelado (sin impacto de precio hoy).
  */
 
+import {
+  BASE_PRICE_POINTS,
+  CM2_PER_SQIN,
+  DISCOUNT_MATRIX,
+  DISCOUNT_QTYS,
+  DISCOUNT_SQIN_COLS,
+  GLOBAL_DISCOUNT_MULT,
+} from './pricing-data'
+
 export type ShapeId = 'rect' | 'square' | 'circle' | 'custom'
-export type MaterialId = 'mate' | 'brillo' | 'holo' | 'refl'
+export type MaterialId = 'mate' | 'brillo'
+export type CutTypeId = 'kiss_cut' | 'die_cut'
 export type SizeId = 's' | 'm' | 'l' | 'xl'
 
 export interface Shape {
@@ -36,12 +49,21 @@ export interface Material {
   desc: string
 }
 
+export interface CutType {
+  id: CutTypeId
+  name: string
+  desc: string
+}
+
 export interface Size {
   id: SizeId
   name: string
   dim: string
   /** lado en cm (asume cuadrado/rectangular en proporción 1:1). */
   side: number
+  /** área en cm² del preset (lado²). */
+  cm2: number
+  /** precio base €/ud a cantidad mínima, derivado del área. */
   base: number
   popular?: boolean
 }
@@ -64,18 +86,16 @@ export const SHAPES: Shape[] = [
   },
 ]
 
+/** Acabado (antes "Material"). Solo Mate y Brillo; ambos mismo precio. */
 export const MATERIALS: Material[] = [
   { id: 'mate', name: 'Mate', mult: 1.0, desc: 'Acabado sobrio, sin reflejos' },
-  { id: 'brillo', name: 'Brillo', mult: 1.05, tag: '+5%', desc: 'Acabado vivo, colores intensos' },
-  { id: 'holo', name: 'Holográfico', mult: 1.35, tag: '+35%', desc: 'Efecto arcoíris' },
-  { id: 'refl', name: 'Reflectante', mult: 1.55, tag: '+55%', desc: 'Visible de noche' },
+  { id: 'brillo', name: 'Brillo', mult: 1.0, desc: 'Acabado vivo, colores intensos' },
 ]
 
-export const SIZES: Size[] = [
-  { id: 's', name: 'Pequeña', dim: '5 × 5 cm', side: 5, base: 2.5 },
-  { id: 'm', name: 'Mediana', dim: '10 × 10 cm', side: 10, base: 4.8, popular: true },
-  { id: 'l', name: 'Grande', dim: '20 × 20 cm', side: 20, base: 9.5 },
-  { id: 'xl', name: 'XL', dim: '40 × 40 cm', side: 40, base: 16.8 },
+/** Tipo de corte (vive junto a la sección de "Forma"). */
+export const CUT_TYPES: CutType[] = [
+  { id: 'kiss_cut', name: 'Corte beso', desc: 'Corta el vinilo dejando el dorso intacto' },
+  { id: 'die_cut', name: 'Troquelado', desc: 'Corta la pegatina y el dorso a la silueta' },
 ]
 
 export const MIN_QTY = 15
@@ -106,92 +126,145 @@ export function isCreditEligibleSize(input: {
 }
 
 /**
- * Precio base para una superficie en cm² interpolando entre los 4 tamaños
- * predefinidos. Más grande = menor coste por cm² (descuento volumen).
+ * Precio base USD/ud (a cantidad mínima) para una superficie dada en
+ * pulgadas², interpolando linealmente sobre BASE_PRICE_POINTS.
+ *   • sqin ≤ primer punto → proporcional al primer punto.
+ *   • entre dos puntos → interpolación lineal.
+ *   • > último punto → extrapola con la pendiente del último tramo.
  */
-export function priceForArea(cm2: number): number {
-  if (cm2 <= 0) return 0
-  const pts: [number, number][] = [
-    [25, 2.5],
-    [100, 4.8],
-    [400, 9.5],
-    [1600, 16.8],
-  ]
-  if (cm2 <= pts[0]![0]) {
-    return (cm2 / pts[0]![0]) * pts[0]![1]
+export function baseUSDForSqin(sqin: number): number {
+  if (sqin <= 0) return 0
+  const pts = BASE_PRICE_POINTS
+  const first = pts[0]!
+  if (sqin <= first[0]) {
+    return (sqin / first[0]) * first[1]
   }
   for (let i = 0; i < pts.length - 1; i++) {
     const [a1, p1] = pts[i]!
     const [a2, p2] = pts[i + 1]!
-    if (cm2 <= a2) {
-      const t = (cm2 - a1) / (a2 - a1)
+    if (sqin <= a2) {
+      const t = (sqin - a1) / (a2 - a1)
       return p1 + t * (p2 - p1)
     }
   }
-  // > 1600 cm²: extrapolar con la pendiente del último tramo.
   const [a1, p1] = pts[pts.length - 2]!
   const [a2, p2] = pts[pts.length - 1]!
   const slope = (p2 - p1) / (a2 - a1)
-  return p2 + (cm2 - a2) * slope
+  return p2 + (sqin - a2) * slope
 }
 
 /**
- * Tiers de descuento por volumen. Empezamos en 15 (cantidad mínima).
- *
- *   15–29      1.00× (sin descuento)
- *   30–49      0.85× (15%)
- *   50–99      0.75× (25%)
- *  100–249     0.65× (35%)
- *  250–499     0.55× (45%)
- *  500–999     0.45× (55%)
- * 1000–2499    0.38× (62%)
- * 2500–5000    0.30× (70%)
+ * Descuento por volumen (fracción 0..1) según cantidad y superficie.
+ * Lookup "floor": mayor fila DISCOUNT_QTYS ≤ units (si units < 50 → fila 0,
+ * descuento 0) y mayor columna DISCOUNT_SQIN_COLS ≤ sqin.
  */
-export function factorForUnits(u: number): number {
-  if (u >= 2500) return 0.3
-  if (u >= 1000) return 0.38
-  if (u >= 500) return 0.45
-  if (u >= 250) return 0.55
-  if (u >= 100) return 0.65
-  if (u >= 50) return 0.75
-  if (u >= 30) return 0.85
-  return 1.0
+export function volumeDiscount(units: number, sqin: number): number {
+  let qi = 0
+  for (let i = 0; i < DISCOUNT_QTYS.length; i++) {
+    if (units >= DISCOUNT_QTYS[i]!) qi = i
+    else break
+  }
+  // units < primera fila (50) → sin descuento.
+  if (units < DISCOUNT_QTYS[0]!) return 0
+
+  let si = 0
+  for (let i = 0; i < DISCOUNT_SQIN_COLS.length; i++) {
+    if (sqin >= DISCOUNT_SQIN_COLS[i]!) si = i
+    else break
+  }
+  const row = DISCOUNT_MATRIX[qi]
+  return row?.[si] ?? 0
 }
 
-/** Devuelve el siguiente tier (umbral, descuento total %). Útil para mostrar
- *  "compra X más unidades para ahorrar Y%". */
+/**
+ * Precio base €/ud (a cantidad mínima, sin descuento por volumen) para una
+ * superficie en cm². Aplica USD≈EUR y el −5% global. Se usa para los presets
+ * SIZES y para el preview de custom.
+ */
+export function priceForArea(cm2: number): number {
+  if (cm2 <= 0) return 0
+  const sqin = cm2 / CM2_PER_SQIN
+  return baseUSDForSqin(sqin) * GLOBAL_DISCOUNT_MULT
+}
+
+/** Tamaños preset. La base se deriva del área (lado²) vía priceForArea. */
+function buildSize(
+  id: SizeId,
+  name: string,
+  side: number,
+  popular?: boolean,
+): Size {
+  const cm2 = side * side
+  return {
+    id,
+    name,
+    dim: `${side} × ${side} cm`,
+    side,
+    cm2,
+    base: priceForArea(cm2),
+    ...(popular ? { popular } : {}),
+  }
+}
+
+export const SIZES: Size[] = [
+  buildSize('s', 'Pequeña', 5),
+  buildSize('m', 'Mediana', 10, true),
+  buildSize('l', 'Grande', 20),
+  buildSize('xl', 'XL', 40),
+]
+
+/**
+ * Siguiente umbral de cantidad con su % de ahorro orientativo, para mostrar
+ * "sube a X uds y ahorra Y%". El % se calcula a una superficie de referencia
+ * (3 pulgadas² ≈ 19 cm², pegatina típica) sobre los tramos de DISCOUNT_QTYS.
+ */
+const NEXT_TIER_REF_SQIN = 3
+
 export function nextTier(u: number): { at: number; saves: number } | null {
-  if (u < 30) return { at: 30, saves: 15 }
-  if (u < 50) return { at: 50, saves: 25 }
-  if (u < 100) return { at: 100, saves: 35 }
-  if (u < 250) return { at: 250, saves: 45 }
-  if (u < 500) return { at: 500, saves: 55 }
-  if (u < 1000) return { at: 1000, saves: 62 }
-  if (u < 2500) return { at: 2500, saves: 70 }
+  for (const at of DISCOUNT_QTYS) {
+    if (u < at) {
+      const saves = Math.round(volumeDiscount(at, NEXT_TIER_REF_SQIN) * 100)
+      return { at, saves }
+    }
+  }
   return null
 }
 
-export function currentDiscount(u: number): number {
-  return Math.round((1 - factorForUnits(u)) * 100)
+/** % de descuento por volumen aplicado ahora mismo a esta superficie. */
+export function currentDiscount(units: number, sqin: number): number {
+  return Math.round(volumeDiscount(units, sqin) * 100)
 }
 
 export interface PriceBreakdown {
   unitPrice: number
   total: number
+  /** precio €/ud sin descuento por volumen (para mostrar el ahorro). */
   baseUnit: number
   savings: number
 }
 
+/**
+ * Calcula el precio. `cm2` es la superficie efectiva de la pegatina.
+ *   unitPrice = baseUSD(sqin) × (1 − descuento) × finishMult × GLOBAL_DISCOUNT_MULT
+ *   baseUnit  = precio sin descuento por volumen (descuento = 0)
+ */
 export function computePrice(input: {
   shape: Shape
   material: Material
-  baseForSize: number
+  /** superficie efectiva en cm² (preset.cm2 o ancho×alto del custom). */
+  cm2: number
   units: number
 }): PriceBreakdown {
-  const { shape, material, baseForSize, units } = input
-  const factor = factorForUnits(units)
-  const baseUnit = baseForSize * shape.mult * material.mult
-  const unitPrice = baseUnit * factor
+  const { shape, material, cm2, units } = input
+  if (cm2 <= 0) {
+    return { unitPrice: 0, total: 0, baseUnit: 0, savings: 0 }
+  }
+  const sqin = cm2 / CM2_PER_SQIN
+  const baseUSD = baseUSDForSqin(sqin)
+  const finishMult = shape.mult * material.mult
+  const baseUnit = baseUSD * finishMult * GLOBAL_DISCOUNT_MULT
+  const discount = volumeDiscount(units, sqin)
+  const unitPrice = baseUnit * (1 - discount)
   const total = unitPrice * units
   const savings = units > 1 ? (baseUnit - unitPrice) * units : 0
   return { unitPrice, total, baseUnit, savings }

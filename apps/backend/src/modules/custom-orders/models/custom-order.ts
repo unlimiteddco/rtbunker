@@ -33,8 +33,10 @@ const CustomOrder = model.define('custom_order', {
   customer_phone: model.text().nullable(),
 
   // ─── Config del configurador ─────────────────────────────────
+  product_type: model.text().nullable(), // vinyls | sheets | holo | glitter | chrome
   shape: model.text(), // rect | square | circle | custom
-  material: model.text(), // mate | brillo | holo | refl
+  cut_type: model.text().nullable(), // kiss_cut | die_cut
+  material: model.text(), // mate | brillo (acabado)
   size_id: model.text().nullable(), // s | m | l | xl  (null si custom)
   width_cm: model.number().nullable(),
   height_cm: model.number().nullable(),

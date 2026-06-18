@@ -61,7 +61,9 @@ export function MobileNav({ roots }: MobileNavProps) {
         {/* Cabecera de marca */}
         <SheetHeader className="shrink-0 space-y-0 border-b border-rt-ink-100 px-5 py-4">
           <SheetTitle className="font-[family-name:var(--font-display)] text-[22px] uppercase leading-none tracking-[-0.01em] text-rt-black">
-            RT <span className="text-rt-yellow-deep">Bunker</span>
+            <Link href="/" onClick={close} aria-label="RT Bunker · inicio">
+              RT <span className="text-rt-yellow-deep">Bunker</span>
+            </Link>
           </SheetTitle>
         </SheetHeader>
 

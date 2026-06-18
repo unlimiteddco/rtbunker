@@ -8,16 +8,23 @@ import type { CreateReviewSchema, ListReviewsSchema } from './middlewares'
  * GET /store/reviews?product_id=...
  * Devuelve las reseñas APROBADAS de un producto + estadísticas (media,
  * total y distribución por estrellas). Público.
+ *
+ * Si se OMITE `product_id`, se listan TODAS las reseñas aprobadas de la
+ * tienda (vista global usada por la home para los testimonios).
  */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
   const { product_id, limit, offset } = req.validatedQuery as unknown as ListReviewsSchema
 
+  // Filtro base: siempre aprobadas. Solo acotamos por producto si nos lo pasan.
+  const baseFilters: Record<string, unknown> = { status: 'approved' }
+  if (product_id) baseFilters.product_id = product_id
+
   // Todas las aprobadas → para estadística fiable. Paginamos la lista visible.
   const { data: all } = await query.graph({
     entity: 'review',
     fields: ['id', 'rating', 'verified_purchase'],
-    filters: { product_id, status: 'approved' },
+    filters: baseFilters,
   })
 
   const count = all.length
@@ -44,7 +51,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
       'admin_response',
       'created_at',
     ],
-    filters: { product_id, status: 'approved' },
+    filters: baseFilters,
     pagination: { take, skip, order: { created_at: 'DESC' } },
   })
 

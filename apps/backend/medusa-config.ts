@@ -23,7 +23,13 @@ export default defineConfig({
     // connections". Para una BD gestionada que lo requiera: DATABASE_SSL=true.
     databaseDriverOptions: {
       connection: {
-        ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+        // ssl:false desactiva SSL (pg lo acepta). Medusa lo tipa como
+        // objeto|undefined, así que casteamos el `false` a undefined (solo a
+        // nivel de tipos; el valor en runtime sigue siendo false).
+        ssl:
+          process.env.DATABASE_SSL === 'true'
+            ? { rejectUnauthorized: false }
+            : (false as unknown as undefined),
       },
     },
     redisUrl: process.env.REDIS_URL,

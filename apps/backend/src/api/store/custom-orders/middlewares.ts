@@ -17,8 +17,13 @@ export const AddCustomOrderToCartSchema = z.object({
   cart_id: z.string().optional().nullable(),
   customer_id: z.string().optional().nullable(),
   config: z.object({
+    product_type: z
+      .enum(['vinyls', 'sheets', 'holo', 'glitter', 'chrome'])
+      .optional()
+      .nullable(),
     shape: z.enum(['rect', 'square', 'circle', 'custom']),
-    material: z.enum(['mate', 'brillo', 'holo', 'refl']),
+    cut_type: z.enum(['kiss_cut', 'die_cut']).optional().nullable(),
+    material: z.enum(['mate', 'brillo']),
     size_id: z.enum(['s', 'm', 'l', 'xl']).optional().nullable(),
     width_cm: z.number().positive().optional().nullable(),
     height_cm: z.number().positive().optional().nullable(),

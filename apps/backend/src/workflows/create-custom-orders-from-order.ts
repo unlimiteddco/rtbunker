@@ -22,6 +22,8 @@ interface OrderLineItemMetadata {
     size_id?: string | null
     width_cm?: number | null
     height_cm?: number | null
+    product_type?: string | null
+    cut_type?: string | null
   }
   design_file_url?: string | null
   design_file_name?: string | null
@@ -111,6 +113,8 @@ const createCustomOrdersFromOrderStep = createStep(
         customer_phone: order.shipping_address?.phone ?? null,
         shape: cfg.shape ?? 'rect',
         material: cfg.material ?? 'mate',
+        product_type: cfg.product_type ?? null,
+        cut_type: cfg.cut_type ?? null,
         size_id: cfg.size_id ?? null,
         width_cm: cfg.width_cm ?? null,
         height_cm: cfg.height_cm ?? null,

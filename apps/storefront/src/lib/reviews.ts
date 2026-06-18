@@ -50,3 +50,38 @@ export const getProductReviews = cache(
     }
   },
 )
+
+/**
+ * Reseñas aprobadas DESTACADAS de toda la tienda (sin filtrar por producto),
+ * para los testimonios de la home. Pide al backend la lista global de
+ * aprobadas y prioriza las que mejor venden: primero con foto y mayor
+ * puntuación. Server-side, cacheado por request. Nunca lanza.
+ */
+export const getFeaturedReviews = cache(
+  async (limit = 8): Promise<ProductReview[]> => {
+    try {
+      const data = await sdk.client.fetch<ProductReviewsData>('/store/reviews', {
+        // Pedimos un margen amplio para poder ordenar/seleccionar las mejores.
+        query: { limit: 50 },
+        next: { revalidate: 60, tags: ['reviews:featured'] },
+      } as Record<string, unknown>)
+
+      const reviews = data?.reviews ?? []
+
+      const hasImages = (r: ProductReview) =>
+        Array.isArray(r.images) && r.images.length > 0
+
+      return [...reviews]
+        .sort((a, b) => {
+          // 1º las que tienen foto, 2º mayor rating, 3º más recientes.
+          const imgDiff = Number(hasImages(b)) - Number(hasImages(a))
+          if (imgDiff !== 0) return imgDiff
+          if (b.rating !== a.rating) return b.rating - a.rating
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        })
+        .slice(0, limit)
+    } catch {
+      return []
+    }
+  },
+)

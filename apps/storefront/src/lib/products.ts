@@ -31,8 +31,10 @@ export const listProducts = cache(async (params: ListProductsParams) => {
       { next: { revalidate: 60, tags: ['products'] } } as RequestInit,
     )
     return { products, count, limit, offset, region }
-  } catch {
-    // Backend no accesible en build-time: lista vacía (no rompe el build).
+  } catch (error) {
+    // Backend no accesible (build-time o runtime caído): lista vacía en vez de
+    // romper el build/render. Logueamos para poder depurar el 500.
+    console.error('[products] listProducts falló:', error)
     return { products: [], count: 0, limit: params.limit ?? 12, offset: params.offset ?? 0, region }
   }
 })
@@ -61,8 +63,10 @@ export const listCategories = cache(async () => {
       { next: { revalidate: 3600, tags: ['categories'] } } as RequestInit,
     )
     return product_categories
-  } catch {
-    // Backend no accesible en build-time: sin categorías (no rompe el build).
+  } catch (error) {
+    // Backend no accesible (build-time o runtime caído): sin categorías en vez
+    // de romper el build/render. Logueamos para depurar.
+    console.error('[products] listCategories falló:', error)
     return [] as Awaited<ReturnType<typeof sdk.store.category.list>>['product_categories']
   }
 })
@@ -85,27 +89,41 @@ export interface CategoryTreeNode {
 
 /** Árbol categoría → subcategorías (raíces ordenadas por rank). */
 export const getCategoryTree = cache(async (): Promise<CategoryTreeNode[]> => {
-  const cats = await listCategories()
-  const childrenOf = (parentId: string) =>
-    cats.filter((c) => parentIdOf(c) === parentId).sort(byRank)
-  return cats
-    .filter((c) => !parentIdOf(c))
-    .sort(byRank)
-    .map((root) => ({
-      id: root.id,
-      name: root.name,
-      handle: root.handle,
-      children: childrenOf(root.id).map((k) => ({ id: k.id, name: k.name, handle: k.handle })),
-    }))
+  try {
+    const cats = await listCategories()
+    const childrenOf = (parentId: string) =>
+      cats.filter((c) => parentIdOf(c) === parentId).sort(byRank)
+    return cats
+      .filter((c) => !parentIdOf(c))
+      .sort(byRank)
+      .map((root) => ({
+        id: root.id,
+        name: root.name,
+        handle: root.handle,
+        children: childrenOf(root.id).map((k) => ({ id: k.id, name: k.name, handle: k.handle })),
+      }))
+  } catch (error) {
+    // Defensa extra: si construir el árbol falla, devolvemos vacío en vez de
+    // romper el render de la página de categoría.
+    console.error('[products] getCategoryTree falló:', error)
+    return []
+  }
 })
 
 /** Busca una categoría por handle + devuelve los ids de sus subcategorías. */
 export const getCategoryByHandle = cache(async (handle: string) => {
-  const cats = await listCategories()
-  const category = cats.find((c) => c.handle === handle)
-  if (!category) return null
-  const childIds = cats.filter((c) => parentIdOf(c) === category.id).map((c) => c.id)
-  return { category, descendantIds: [category.id, ...childIds] }
+  try {
+    const cats = await listCategories()
+    const category = cats.find((c) => c.handle === handle)
+    if (!category) return null
+    const childIds = cats.filter((c) => parentIdOf(c) === category.id).map((c) => c.id)
+    return { category, descendantIds: [category.id, ...childIds] }
+  } catch (error) {
+    // Si la búsqueda de la categoría falla, tratamos el handle como no
+    // encontrado (la página hará notFound) en vez de propagar un 500.
+    console.error(`[products] getCategoryByHandle(${handle}) falló:`, error)
+    return null
+  }
 })
 
 export interface ShopMenuNode extends CategoryTreeNode {

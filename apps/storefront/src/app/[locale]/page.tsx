@@ -2,11 +2,16 @@ import { setRequestLocale } from 'next-intl/server'
 
 import { CategoryGrid } from '@/components/home/category-grid'
 import { Hero } from '@/components/home/hero'
+import { HomeFaq } from '@/components/home/home-faq'
+import { HomeTestimonials } from '@/components/home/home-testimonials'
 import { ScrollShowcase } from '@/components/home/scroll-showcase'
+import { StickerTypes } from '@/components/home/sticker-types'
+import { TrustBadges } from '@/components/home/trust-badges'
 import { WhyUs } from '@/components/home/why-us'
 import { ProductCard } from '@/components/product/product-card'
 import { Link } from '@/i18n/routing'
 import { listProducts } from '@/lib/products'
+import { getFeaturedReviews } from '@/lib/reviews'
 
 export const revalidate = 60
 
@@ -18,12 +23,17 @@ export default async function HomePage({ params }: HomeProps) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  const { products } = await listProducts({ countryCode: locale, limit: 8 })
+  const [{ products }, featuredReviews] = await Promise.all([
+    listProducts({ countryCode: locale, limit: 8 }),
+    getFeaturedReviews(8),
+  ])
 
   return (
     <>
       <Hero />
+      <StickerTypes />
       <CategoryGrid locale={locale} />
+      <TrustBadges />
       <ScrollShowcase />
       <WhyUs />
 
@@ -65,6 +75,9 @@ export default async function HomePage({ params }: HomeProps) {
           </div>
         </section>
       )}
+
+      <HomeTestimonials reviews={featuredReviews} />
+      <HomeFaq />
     </>
   )
 }

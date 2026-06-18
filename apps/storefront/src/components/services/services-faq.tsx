@@ -1,10 +1,16 @@
+'use client'
+
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { X } from 'lucide-react'
+import { useState } from 'react'
+
+import { Reveal } from '@/components/services/reveal'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { Reveal } from '@/components/services/reveal'
 
 const FAQS = [
   {
@@ -43,7 +49,31 @@ const FAQS = [
   },
 ]
 
+/** Acordeón reutilizable: se usa inline y dentro del popup. */
+function FaqAccordion({ idPrefix }: { idPrefix: string }) {
+  return (
+    <Accordion type="single" collapsible className="space-y-2">
+      {FAQS.map((f, i) => (
+        <AccordionItem
+          key={f.q}
+          value={`${idPrefix}-${i}`}
+          className="rounded-[16px] border border-rt-ink-100 bg-rt-white-2 px-5 transition-colors data-[state=open]:border-rt-yellow data-[state=open]:bg-rt-white"
+        >
+          <AccordionTrigger className="py-4 text-left font-[family-name:var(--font-heading)] text-[16px] font-bold leading-[1.3] text-rt-black hover:no-underline">
+            {f.q}
+          </AccordionTrigger>
+          <AccordionContent className="pb-5 text-[14px] leading-[1.65] text-rt-ink-500">
+            {f.a}
+          </AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  )
+}
+
 export function ServicesFaq() {
+  const [open, setOpen] = useState(false)
+
   return (
     <section className="bg-rt-white py-20 md:py-28">
       <div className="container-page grid gap-12 md:grid-cols-[1fr_1.4fr] md:gap-16">
@@ -53,27 +83,54 @@ export function ServicesFaq() {
           <p className="mt-5 text-[15px] leading-[1.65] text-rt-ink-500">
             Si la tuya no está aquí, escríbenos por WhatsApp y te respondemos al momento.
           </p>
+
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="mt-7 inline-flex items-center gap-2 rounded-[14px] bg-rt-black px-5 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-rt-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-rt-black-2 font-[family-name:var(--font-heading)]"
+          >
+            Ver todas las preguntas
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="h-4 w-4">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </button>
         </Reveal>
 
+        {/* Acordeón inline (no se toca el comportamiento original). */}
         <Reveal as="up">
-          <Accordion type="single" collapsible className="space-y-2">
-            {FAQS.map((f, i) => (
-              <AccordionItem
-                key={f.q}
-                value={`faq-${i}`}
-                className="rounded-[16px] border border-rt-ink-100 bg-rt-white-2 px-5 transition-colors data-[state=open]:border-rt-yellow data-[state=open]:bg-rt-white"
-              >
-                <AccordionTrigger className="py-4 text-left font-[family-name:var(--font-heading)] text-[16px] font-bold leading-[1.3] text-rt-black hover:no-underline">
-                  {f.q}
-                </AccordionTrigger>
-                <AccordionContent className="pb-5 text-[14px] leading-[1.65] text-rt-ink-500">
-                  {f.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <FaqAccordion idPrefix="faq" />
         </Reveal>
       </div>
+
+      {/* Popup con el acordeón completo (más visible). */}
+      <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-[100] bg-rt-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <DialogPrimitive.Content
+            className="fixed left-[50%] top-[50%] z-[100] flex max-h-[90vh] w-[calc(100%-1.5rem)] max-w-2xl translate-x-[-50%] translate-y-[-50%] flex-col overflow-hidden rounded-[24px] border border-rt-ink-100 bg-rt-white text-rt-black shadow-[var(--shadow-xl)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+            aria-describedby={undefined}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-rt-ink-100 px-6 py-5">
+              <div>
+                <p className="rt-eyebrow text-rt-yellow-deep">Preguntas frecuentes</p>
+                <DialogPrimitive.Title className="mt-1.5 font-[family-name:var(--font-heading)] text-[22px] font-bold leading-[1.1] text-rt-black">
+                  Todas las dudas, en un sitio
+                </DialogPrimitive.Title>
+              </div>
+              <DialogPrimitive.Close
+                aria-label="Cerrar"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rt-white-2 text-rt-ink-500 transition-colors hover:bg-rt-ink-100 hover:text-rt-black"
+              >
+                <X className="h-4 w-4" />
+              </DialogPrimitive.Close>
+            </div>
+
+            <div className="overflow-y-auto px-6 py-6">
+              <FaqAccordion idPrefix="faq-modal" />
+            </div>
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
     </section>
   )
 }

@@ -67,7 +67,8 @@ export async function Footer() {
               <p className="mt-4 max-w-[340px] text-[14px] leading-[1.6] text-rt-ink-300">
                 Fabricantes de pegatinas premium para coches.
                 <br />
-                Calle Forqueta · 50410 — Cuarte de Huerva, Zaragoza, España.
+                Calle Neto, nave 15 · 50410 — Cuarte de Huerva, Zaragoza, España.
+                {/* TODO confirmar CP y ciudad */}
               </p>
               <a
                 href="mailto:info@rtbunker.com"
@@ -103,8 +104,9 @@ export async function Footer() {
               © {year} RT Bunker. {t('rights')}
             </span>
             <div className="flex items-center gap-5">
+              {/* TODO Nikita: handle real */}
               <a
-                href="https://instagram.com/rtbunker"
+                href="https://instagram.com/rtbunker_oficial"
                 aria-label="Instagram"
                 target="_blank"
                 rel="noreferrer"

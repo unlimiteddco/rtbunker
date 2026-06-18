@@ -26,7 +26,7 @@ const PAGES: Record<string, Record<string, CmsPage>> = {
 <ul>
   <li><strong>Titular:</strong> RT Bunker <!-- [COMPLETAR: razón social completa] --></li>
   <li><strong>NIF/CIF:</strong> [COMPLETAR: NIF/CIF]</li>
-  <li><strong>Domicilio:</strong> Calle Forqueta, 50410 Cuarte de Huerva (Zaragoza), España</li>
+  <li><strong>Domicilio:</strong> Calle Neto, nave 15, 50410 Cuarte de Huerva (Zaragoza), España</li>
   <li><strong>Correo electrónico:</strong> <a href="mailto:info@rtbunker.com">info@rtbunker.com</a></li>
   <li><strong>Sitio web:</strong> rtbunker.com</li>
 </ul>
@@ -58,7 +58,7 @@ const PAGES: Record<string, Record<string, CmsPage>> = {
       body: `
 <p><em>Last updated: 31 May 2026.</em></p>
 <h2>1. Owner details</h2>
-<p>The owner of this website is RT Bunker, with registered address at Calle Forqueta, 50410 Cuarte de Huerva (Zaragoza), Spain, and email <a href="mailto:info@rtbunker.com">info@rtbunker.com</a>.</p>
+<p>The owner of this website is RT Bunker, with registered address at Calle Neto, nave 15, 50410 Cuarte de Huerva (Zaragoza), Spain, and email <a href="mailto:info@rtbunker.com">info@rtbunker.com</a>.</p>
 <h2>2. Purpose</h2>
 <p>This legal notice governs access to and use of this website and its online shop. Using the site implies acceptance of these terms.</p>
 <h2>3. Intellectual property</h2>
@@ -73,7 +73,7 @@ const PAGES: Record<string, Record<string, CmsPage>> = {
       body: `
 <p><em>Dernière mise à jour : 31 mai 2026.</em></p>
 <h2>1. Éditeur</h2>
-<p>Ce site est édité par RT Bunker, dont le siège est Calle Forqueta, 50410 Cuarte de Huerva (Saragosse), Espagne, e-mail <a href="mailto:info@rtbunker.com">info@rtbunker.com</a>.</p>
+<p>Ce site est édité par RT Bunker, dont le siège est Calle Neto, nave 15, 50410 Cuarte de Huerva (Saragosse), Espagne, e-mail <a href="mailto:info@rtbunker.com">info@rtbunker.com</a>.</p>
 <h2>2. Objet</h2>
 <p>Les présentes mentions régissent l’accès et l’utilisation de ce site et de sa boutique en ligne. L’utilisation du site implique l’acceptation de ces conditions.</p>
 <h2>3. Propriété intellectuelle</h2>
@@ -94,7 +94,7 @@ const PAGES: Record<string, Record<string, CmsPage>> = {
 <h2>1. Responsable del tratamiento</h2>
 <ul>
   <li><strong>Responsable:</strong> RT Bunker <!-- [COMPLETAR: razón social] --> (NIF [COMPLETAR])</li>
-  <li><strong>Domicilio:</strong> Calle Forqueta, 50410 Cuarte de Huerva (Zaragoza), España</li>
+  <li><strong>Domicilio:</strong> Calle Neto, nave 15, 50410 Cuarte de Huerva (Zaragoza), España</li>
   <li><strong>Contacto:</strong> <a href="mailto:info@rtbunker.com">info@rtbunker.com</a></li>
 </ul>
 
@@ -148,7 +148,7 @@ const PAGES: Record<string, Record<string, CmsPage>> = {
 <p><em>Last updated: 31 May 2026.</em></p>
 <p>This policy explains what personal data RT Bunker collects, why, and what rights you have under Regulation (EU) 2016/679 (GDPR).</p>
 <h2>1. Controller</h2>
-<p>RT Bunker, Calle Forqueta, 50410 Cuarte de Huerva (Zaragoza), Spain — <a href="mailto:info@rtbunker.com">info@rtbunker.com</a>.</p>
+<p>RT Bunker, Calle Neto, nave 15, 50410 Cuarte de Huerva (Zaragoza), Spain — <a href="mailto:info@rtbunker.com">info@rtbunker.com</a>.</p>
 <h2>2. Data we process</h2>
 <p>Account data (name, email), order and shipping data, payment data (handled by our payment provider) and browsing data via cookies.</p>
 <h2>3. Purposes &amp; legal basis</h2>
@@ -166,7 +166,7 @@ const PAGES: Record<string, Record<string, CmsPage>> = {
 <p><em>Dernière mise à jour : 31 mai 2026.</em></p>
 <p>Cette politique explique quelles données personnelles RT Bunker collecte, pourquoi, et quels sont vos droits selon le Règlement (UE) 2016/679 (RGPD).</p>
 <h2>1. Responsable</h2>
-<p>RT Bunker, Calle Forqueta, 50410 Cuarte de Huerva (Saragosse), Espagne — <a href="mailto:info@rtbunker.com">info@rtbunker.com</a>.</p>
+<p>RT Bunker, Calle Neto, nave 15, 50410 Cuarte de Huerva (Saragosse), Espagne — <a href="mailto:info@rtbunker.com">info@rtbunker.com</a>.</p>
 <h2>2. Données traitées</h2>
 <p>Données de compte (nom, e-mail), données de commande et de livraison, données de paiement (gérées par notre prestataire) et données de navigation via cookies.</p>
 <h2>3. Finalités et base légale</h2>

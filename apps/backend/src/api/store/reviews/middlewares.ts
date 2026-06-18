@@ -12,7 +12,9 @@ const upload = multer({
 })
 
 export const ListReviewsSchema = z.object({
-  product_id: z.string(),
+  // Opcional: si se omite, se listan TODAS las reseñas aprobadas (vista
+  // global para la home). Si viene, se filtra por producto (PDP).
+  product_id: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(50).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 })

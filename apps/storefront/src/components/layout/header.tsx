@@ -55,7 +55,7 @@ export async function Header({ locale }: HeaderProps) {
             Personalizadas
             <span
               aria-label="Novedad"
-              className="inline-flex items-center rounded-full bg-rt-yellow px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-rt-black"
+              className="pointer-events-none absolute -right-2 -top-2.5 inline-flex items-center rounded-full bg-rt-yellow px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-rt-black"
             >
               Nuevo
             </span>

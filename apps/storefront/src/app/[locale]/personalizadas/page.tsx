@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import { setRequestLocale } from 'next-intl/server'
 
-import { ClubPromoBanner } from '@/components/memberships/club-promo-banner'
+import { PersonalizadasClubCta } from '@/components/personalizadas/personalizadas-club-cta'
 import { PersonalizadasCompact } from '@/components/personalizadas/personalizadas-compact'
+import { PersonalizadasHero } from '@/components/personalizadas/personalizadas-hero'
+import { PersonalizadasSlider } from '@/components/personalizadas/personalizadas-slider'
 import { getMembership, isActiveMembership } from '@/lib/membership'
 
 interface PersonalizadasPageProps {
@@ -32,8 +34,12 @@ export default async function PersonalizadasPage({ params }: PersonalizadasPageP
 
   return (
     <>
-      <PersonalizadasCompact availableCredits={availableCredits} />
-      {availableCredits > 0 ? null : <ClubPromoBanner />}
+      <PersonalizadasHero />
+      <div id="configurador" className="scroll-mt-20">
+        <PersonalizadasCompact availableCredits={availableCredits} />
+      </div>
+      <PersonalizadasSlider />
+      {availableCredits > 0 ? null : <PersonalizadasClubCta />}
     </>
   )
 }
