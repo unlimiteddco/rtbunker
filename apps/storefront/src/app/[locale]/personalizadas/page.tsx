@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 import { setRequestLocale } from 'next-intl/server'
 
+import { HomeTestimonials } from '@/components/home/home-testimonials'
+import { PersonalizadasAbout } from '@/components/personalizadas/personalizadas-about'
 import { PersonalizadasClubCta } from '@/components/personalizadas/personalizadas-club-cta'
-import { PersonalizadasCompact } from '@/components/personalizadas/personalizadas-compact'
 import { PersonalizadasHero } from '@/components/personalizadas/personalizadas-hero'
-import { PersonalizadasSlider } from '@/components/personalizadas/personalizadas-slider'
+import { PersonalizadasLogosMarquee } from '@/components/personalizadas/personalizadas-logos-marquee'
+import { PersonalizadasProductPicker } from '@/components/personalizadas/personalizadas-product-picker'
 import { getMembership, isActiveMembership } from '@/lib/membership'
+import { getFeaturedReviews } from '@/lib/reviews'
 
 interface PersonalizadasPageProps {
   params: Promise<{ locale: string }>
@@ -32,13 +35,17 @@ export default async function PersonalizadasPage({ params }: PersonalizadasPageP
   const membership = await getMembership()
   const availableCredits = isActiveMembership(membership) ? (membership?.credits_balance ?? 0) : 0
 
+  // Reseñas destacadas de la tienda para los testimonios (getFeaturedReviews
+  // nunca lanza: devuelve [] si el backend falla).
+  const reviews = await getFeaturedReviews(8)
+
   return (
     <>
       <PersonalizadasHero />
-      <div id="configurador" className="scroll-mt-20">
-        <PersonalizadasCompact availableCredits={availableCredits} />
-      </div>
-      <PersonalizadasSlider />
+      <PersonalizadasLogosMarquee />
+      <PersonalizadasProductPicker availableCredits={availableCredits} />
+      <HomeTestimonials reviews={reviews} />
+      <PersonalizadasAbout />
       {availableCredits > 0 ? null : <PersonalizadasClubCta />}
     </>
   )

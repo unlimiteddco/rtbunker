@@ -10,10 +10,10 @@ interface OptionCardProps {
   onClick: () => void
   children: ReactNode
   /** "+20%", "+35%" — Acompañamiento al multiplicador. */
-  tag?: string
+  tag?: string | undefined
   /** "Top" / "Más elegido" badge. */
-  popular?: boolean
-  className?: string
+  popular?: boolean | undefined
+  className?: string | undefined
 }
 
 /**

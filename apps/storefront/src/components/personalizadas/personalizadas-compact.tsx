@@ -40,6 +40,12 @@ interface PersonalizadasCompactProps {
   contactEmail?: string
   /** Créditos disponibles del socio (0 si no es socio o no tiene). */
   availableCredits?: number
+  /** Tipo de producto con el que arranca el configurador. */
+  initialProductType?: ProductTypeId
+  /** Renderiza el paso "Tipo de producto" (paso 1). Default true. */
+  showTypeStep?: boolean
+  /** Renderiza la franja hero interna ("Diseña tu pegatina"). Default true. */
+  showHero?: boolean
 }
 
 const eur = (n: number) => n.toFixed(2).replace('.', ',') + ' €'
@@ -64,10 +70,18 @@ function creditQuickOptions(max: number): number[] {
 export function PersonalizadasCompact({
   contactEmail: _contactEmail = 'info@rtbunker.com',
   availableCredits = 0,
+  initialProductType,
+  showTypeStep = true,
+  showHero = true,
 }: PersonalizadasCompactProps) {
   void _contactEmail
   const router = useRouter()
-  const [productType, setProductType] = useState<ProductTypeId>(DEFAULT_PRODUCT_TYPE)
+  const [productType, setProductType] = useState<ProductTypeId>(
+    initialProductType ?? DEFAULT_PRODUCT_TYPE,
+  )
+  // Offset de numeración de pasos: si ocultamos "Tipo de producto",
+  // los pasos restantes empiezan en 1 (Forma=1 … Sube=5) en vez de 2…6.
+  const o = showTypeStep ? 0 : -1
   const [shape, setShape] = useState<ShapeId>('square')
   const [cutType, setCutType] = useState<CutTypeId>('kiss_cut')
   const [material, setMaterial] = useState<MaterialId>('mate')
@@ -204,48 +218,52 @@ export function PersonalizadasCompact({
   return (
     <div className="bg-rt-white-2">
       {/* ─── Hero strip (1 línea) ──────────────────────────── */}
-      <section className="container-page pb-4 pt-6 md:pt-10">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="font-[family-name:var(--font-heading)] text-[11px] font-bold uppercase tracking-[0.22em] text-rt-yellow md:text-[12px]">
-              Pegatinas a medida
+      {showHero ? (
+        <section className="container-page pb-4 pt-6 md:pt-10">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="font-[family-name:var(--font-heading)] text-[11px] font-bold uppercase tracking-[0.22em] text-rt-yellow md:text-[12px]">
+                Pegatinas a medida
+              </p>
+              <h1 className="mt-3 font-[family-name:var(--font-display)] text-[clamp(28px,4.5vw,48px)] uppercase leading-[1.02] tracking-[-0.02em] text-rt-black">
+                Diseña tu <span className="text-rt-yellow">pegatina</span>
+              </h1>
+            </div>
+            <p className="max-w-[420px] text-[12px] leading-[1.45] text-rt-ink-500 md:text-[13px]">
+              Mín. 15 uds · envío 24–48h · vinilo premium fabricado en España.
             </p>
-            <h1 className="mt-3 font-[family-name:var(--font-display)] text-[clamp(28px,4.5vw,48px)] uppercase leading-[1.02] tracking-[-0.02em] text-rt-black">
-              Diseña tu <span className="text-rt-yellow">pegatina</span>
-            </h1>
           </div>
-          <p className="max-w-[420px] text-[12px] leading-[1.45] text-rt-ink-500 md:text-[13px]">
-            Mín. 15 uds · envío 24–48h · vinilo premium fabricado en España.
-          </p>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* ─── Tipo de producto (paso 1, ancho completo) ─────── */}
-      <section className="container-page pb-4">
-        <CompactStep n={1} title="Tipo de producto">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-            {PRODUCT_TYPES.map((p) => (
-              <ProductTypeCard
-                key={p.id}
-                selected={productType === p.id}
-                disabled={!p.enabled}
-                comingSoon={p.comingSoon}
-                onClick={() => {
-                  if (p.enabled) setProductType(p.id)
-                }}
-              >
-                {p.name}
-              </ProductTypeCard>
-            ))}
-          </div>
-        </CompactStep>
-      </section>
+      {showTypeStep ? (
+        <section className="container-page pb-4">
+          <CompactStep n={1} title="Tipo de producto">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              {PRODUCT_TYPES.map((p) => (
+                <ProductTypeCard
+                  key={p.id}
+                  selected={productType === p.id}
+                  disabled={!p.enabled}
+                  comingSoon={p.comingSoon}
+                  onClick={() => {
+                    if (p.enabled) setProductType(p.id)
+                  }}
+                >
+                  {p.name}
+                </ProductTypeCard>
+              ))}
+            </div>
+          </CompactStep>
+        </section>
+      ) : null}
 
       {/* ─── 4 cols (Forma · Acabado · Tamaño · Unidades) ───── */}
-      <section className="container-page pb-4">
+      <section className={cn('container-page pb-4', showHero || showTypeStep ? '' : 'pt-6 md:pt-8')}>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {/* Step 2 — Forma + tipo de corte */}
-          <CompactStep n={2} title="Forma">
+          {/* Step — Forma + tipo de corte */}
+          <CompactStep n={2 + o} title="Forma">
             <div className="grid grid-cols-2 gap-2">
               {SHAPES.map((s) => (
                 <OptionCard
@@ -290,8 +308,8 @@ export function PersonalizadasCompact({
             </div>
           </CompactStep>
 
-          {/* Step 3 — Acabado */}
-          <CompactStep n={3} title="Acabado">
+          {/* Step — Acabado */}
+          <CompactStep n={3 + o} title="Acabado">
             <div className="grid grid-cols-2 gap-2">
               {MATERIALS.map((m) => (
                 <OptionCard
@@ -310,8 +328,8 @@ export function PersonalizadasCompact({
             </div>
           </CompactStep>
 
-          {/* Step 3 — Tamaño */}
-          <CompactStep n={4} title="Tamaño">
+          {/* Step — Tamaño */}
+          <CompactStep n={4 + o} title="Tamaño">
             {/* 4 tamaños estándar siempre visibles. */}
             <div className="grid grid-cols-2 gap-2">
               {SIZES.map((s) => (
@@ -418,8 +436,8 @@ export function PersonalizadasCompact({
             ) : null}
           </CompactStep>
 
-          {/* Step 4 — Unidades */}
-          <CompactStep n={5} title="Unidades">
+          {/* Step — Unidades */}
+          <CompactStep n={5 + o} title="Unidades">
             {/* Toggle pagar con créditos (solo socios con saldo) */}
             {availableCredits > 0 ? (
               creditEligible ? (
@@ -550,7 +568,7 @@ export function PersonalizadasCompact({
       <section className="container-page pb-12">
         <div className="grid items-start gap-3 md:grid-cols-[1.5fr_1fr]">
           {/* Subir archivo */}
-          <CompactStep n={6} title="Sube tu diseño">
+          <CompactStep n={6 + o} title="Sube tu diseño">
             <Upload file={file} onFile={setFile} onClear={() => setFile(null)} />
           </CompactStep>
 
