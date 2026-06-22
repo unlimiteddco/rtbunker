@@ -20,6 +20,8 @@
  * ─────────────────────────────────────────────────────────────────────
  */
 
+import { sdk } from './medusa'
+
 export type ServiceType =
   | 'wrapping'
   | 'car-design'
@@ -57,9 +59,10 @@ export const SERVICE_TYPES: ServiceType[] = [
   'rotulacion',
 ]
 
-// TODO Nikita: reemplazar estos trabajos placeholder por proyectos reales
-// (fotos en /public/portfolio/, textos y metadatos definitivos).
-export const PORTFOLIO: PortfolioWork[] = [
+// Trabajos placeholder de respaldo. Se muestran si el backend no está
+// disponible o no devuelve trabajos publicados, para que la galería nunca
+// quede vacía. El origen real de datos es `getPortfolioWorks()` (abajo).
+export const PORTFOLIO_FALLBACK: PortfolioWork[] = [
   {
     id: 'wrapping-g63',
     title: 'Mercedes-AMG G63 · Full Wrap negro mate',
@@ -137,3 +140,68 @@ export const PORTFOLIO: PortfolioWork[] = [
     date: '2024',
   },
 ]
+
+/**
+ * Alias retrocompatible. Mantiene los imports existentes de `PORTFOLIO`
+ * funcionando (apuntan al respaldo estático). El origen real de datos es
+ * `getPortfolioWorks()`.
+ */
+export const PORTFOLIO: PortfolioWork[] = PORTFOLIO_FALLBACK
+
+/** Shape crudo que devuelve la ruta pública GET /store/portfolio. */
+interface StorePortfolioWork {
+  id: string
+  service_type: ServiceType
+  title: string
+  description: string
+  car?: string | null
+  materials?: string | null
+  date_label?: string | null
+  thumbnail?: string | null
+  images?: string[] | null
+  rank?: number
+}
+
+interface StorePortfolioResponse {
+  portfolio_works: StorePortfolioWork[]
+  count: number
+  limit: number
+  offset: number
+}
+
+/** Mapea un trabajo del backend al shape que consume el storefront. */
+function mapStoreWork(w: StorePortfolioWork): PortfolioWork {
+  const images = Array.isArray(w.images) ? w.images : []
+  const thumbnail = w.thumbnail ?? images[0] ?? ''
+
+  return {
+    id: w.id,
+    title: w.title,
+    serviceType: w.service_type,
+    thumbnail,
+    images,
+    description: w.description,
+    ...(w.car ? { car: w.car } : {}),
+    ...(w.materials ? { materials: w.materials } : {}),
+    ...(w.date_label ? { date: w.date_label } : {}),
+  }
+}
+
+/**
+ * Trabajos del portafolio desde el backend (módulo `portfolio`). Server-side.
+ * Solo publicados, orden rank asc. Es RESILIENTE: si el backend falla o no
+ * devuelve trabajos, cae al respaldo estático `PORTFOLIO_FALLBACK`. Nunca lanza.
+ */
+export async function getPortfolioWorks(): Promise<PortfolioWork[]> {
+  try {
+    const data = await sdk.client.fetch<StorePortfolioResponse>('/store/portfolio', {
+      query: { limit: 100 },
+      next: { revalidate: 60, tags: ['portfolio'] },
+    } as Record<string, unknown>)
+
+    const works = (data?.portfolio_works ?? []).map(mapStoreWork)
+    return works.length > 0 ? works : PORTFOLIO_FALLBACK
+  } catch {
+    return PORTFOLIO_FALLBACK
+  }
+}

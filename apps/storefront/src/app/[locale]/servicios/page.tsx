@@ -9,6 +9,7 @@ import { ServicesHero } from '@/components/services/services-hero'
 import { ServicesProcess } from '@/components/services/services-process'
 import { ServicesWarranty } from '@/components/services/services-warranty'
 import { ServicesWhy } from '@/components/services/services-why'
+import { getPortfolioWorks } from '@/lib/portfolio'
 
 export const revalidate = 3600
 
@@ -33,12 +34,15 @@ export default async function ServicesPage({ params }: ServicesPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
 
+  // Portafolio desde el backend (resiliente: cae al respaldo estático si falla).
+  const works = await getPortfolioWorks()
+
   return (
     <>
       <ServicesHero />
       <ServicesGrid />
       <ServicesProcess />
-      <ServicesGallery />
+      <ServicesGallery works={works} />
       <ServicesWhy />
       <ServicesWarranty />
       <ServicesFaq />

@@ -5,7 +5,6 @@ import { useMemo, useState } from 'react'
 
 import { PortfolioDetailModal } from '@/components/services/portfolio-detail-modal'
 import {
-  PORTFOLIO,
   SERVICE_TYPES,
   SERVICE_TYPE_LABELS,
   type PortfolioWork,
@@ -14,25 +13,30 @@ import {
 
 type Filter = ServiceType | 'all'
 
+interface PortfolioGridProps {
+  works: PortfolioWork[]
+}
+
 /**
- * Rejilla compacta y filtrable del portafolio. Al hacer click en un
- * trabajo se abre el modal de detalle (`PortfolioDetailModal`).
+ * Rejilla compacta y filtrable del portafolio. Los trabajos llegan por props
+ * desde el server component (origen: backend, con respaldo estático). Al hacer
+ * click en un trabajo se abre el modal de detalle (`PortfolioDetailModal`).
  * Solo se muestran filtros con al menos un trabajo.
  */
-export function PortfolioGrid() {
+export function PortfolioGrid({ works: allWorks }: PortfolioGridProps) {
   const [filter, setFilter] = useState<Filter>('all')
   const [activeWork, setActiveWork] = useState<PortfolioWork | null>(null)
   const [open, setOpen] = useState(false)
 
   // Categorías que tienen al menos un trabajo (evita filtros vacíos).
   const availableTypes = useMemo(
-    () => SERVICE_TYPES.filter((t) => PORTFOLIO.some((w) => w.serviceType === t)),
-    [],
+    () => SERVICE_TYPES.filter((t) => allWorks.some((w) => w.serviceType === t)),
+    [allWorks],
   )
 
   const works = useMemo(
-    () => (filter === 'all' ? PORTFOLIO : PORTFOLIO.filter((w) => w.serviceType === filter)),
-    [filter],
+    () => (filter === 'all' ? allWorks : allWorks.filter((w) => w.serviceType === filter)),
+    [filter, allWorks],
   )
 
   const openWork = (work: PortfolioWork) => {

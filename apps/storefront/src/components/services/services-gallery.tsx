@@ -1,7 +1,12 @@
 import { PortfolioGrid } from '@/components/services/portfolio-grid'
 import { Reveal } from '@/components/services/reveal'
+import type { PortfolioWork } from '@/lib/portfolio'
 
-export function ServicesGallery() {
+interface ServicesGalleryProps {
+  works: PortfolioWork[]
+}
+
+export function ServicesGallery({ works }: ServicesGalleryProps) {
   return (
     <section className="bg-rt-black py-20 text-rt-white md:py-28">
       <div className="container-page">
@@ -21,7 +26,7 @@ export function ServicesGallery() {
         </div>
 
         <Reveal as="up" delay={80}>
-          <PortfolioGrid />
+          <PortfolioGrid works={works} />
         </Reveal>
       </div>
     </section>

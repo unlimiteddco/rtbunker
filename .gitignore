@@ -6,6 +6,11 @@ build/
 .cache/
 coverage/
 
+# Config de Medusa compilado (artefacto de build). Si se commitea, Medusa lo
+# carga con preferencia sobre medusa-config.ts en dev y "congela" la config.
+apps/backend/medusa-config.js
+apps/backend/medusa-config.js.map
+
 .env
 .env.local
 .env.*.local

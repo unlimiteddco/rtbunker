@@ -183,6 +183,11 @@ export default defineConfig({
       resolve: './src/modules/memberships',
     },
 
+    // ───── Portafolio de trabajos (módulo propio) ───────────────────
+    {
+      resolve: './src/modules/portfolio',
+    },
+
     // ───── Notificaciones: Resend (provider custom local) ────────────
     {
       resolve: '@medusajs/medusa/notification',
