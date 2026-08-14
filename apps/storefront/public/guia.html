@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>RT Bunker · Guía de tu web</title>
+<style>
+  :root {
+    --accent: #0a9d98;
+    --accent-deep: #077a76;
+    --accent-soft: rgba(10,157,152,0.12);
+    --accent-line: rgba(10,157,152,0.30);
+    --bg: #f3f6f5;
+    --bg-2: #ffffff;
+    --bg-3: #eaefee;
+    --border: #d8e1df;
+    --border-2: #c7d2d0;
+    --text: #0f1e1c;
+    --muted: #556764;
+    --ok: #1f9d6b;
+    --warn: #c07c1a;
+    --shadow: 0 1px 2px rgba(15,30,28,0.05), 0 8px 24px rgba(15,30,28,0.06);
+    --radius: 14px;
+    --font-display: "Helvetica Neue", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #18cabf; --accent-deep: #0fa39a; --accent-soft: rgba(23,202,191,0.13); --accent-line: rgba(23,202,191,0.28);
+      --bg: #0b100f; --bg-2: #121917; --bg-3: #0f1514; --border: #223029; --border-2: #2c3b36;
+      --text: #e9f1ef; --muted: #8ea29e; --ok: #35c088; --warn: #e0a53a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --accent: #0a9d98; --accent-deep: #077a76; --accent-soft: rgba(10,157,152,0.12); --accent-line: rgba(10,157,152,0.30);
+    --bg: #f3f6f5; --bg-2: #ffffff; --bg-3: #eaefee; --border: #d8e1df; --border-2: #c7d2d0;
+    --text: #0f1e1c; --muted: #556764; --ok: #1f9d6b; --warn: #c07c1a;
+    --shadow: 0 1px 2px rgba(15,30,28,0.05), 0 8px 24px rgba(15,30,28,0.06);
+  }
+  :root[data-theme="dark"] {
+    --accent: #18cabf; --accent-deep: #0fa39a; --accent-soft: rgba(23,202,191,0.13); --accent-line: rgba(23,202,191,0.28);
+    --bg: #0b100f; --bg-2: #121917; --bg-3: #0f1514; --border: #223029; --border-2: #2c3b36;
+    --text: #e9f1ef; --muted: #8ea29e; --ok: #35c088; --warn: #e0a53a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 500px at 50% -220px, var(--accent-soft), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 22px 96px; }
+
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    margin: 0 0 12px;
+  }
+  @media (prefers-color-scheme: dark) { .eyebrow { color: var(--accent); } }
+  :root[data-theme="dark"] .eyebrow { color: var(--accent); }
+  :root[data-theme="light"] .eyebrow { color: var(--accent-deep); }
+  p { margin: 0 0 14px; }
+  .lead { font-size: 18px; color: var(--muted); max-width: 60ch; }
+  a { color: inherit; }
+
+  header.hero { padding: 78px 0 26px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em;
+    color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 13px; margin-bottom: 26px; background: var(--bg-2);
+  }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px var(--accent-soft); }
+  h1 {
+    font-size: clamp(38px, 8vw, 66px);
+    line-height: 0.96;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  h1 .thin { color: var(--muted); font-weight: 800; }
+  .hero .lead { margin-top: 20px; font-size: 19px; }
+
+  section { padding-top: 58px; }
+  .sec-head { margin-bottom: 26px; }
+  h2 { font-size: clamp(24px, 4.6vw, 33px); font-weight: 800; letter-spacing: -0.015em; }
+  .sec-head p { margin-top: 10px; color: var(--muted); max-width: 62ch; }
+
+  .grid { display: grid; gap: 14px; }
+  @media (min-width: 620px) { .grid.two { grid-template-columns: 1fr 1fr; } }
+
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 20px 19px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .card .ic {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--accent-soft); color: var(--accent-deep);
+    margin-bottom: 13px;
+  }
+  @media (prefers-color-scheme: dark) { .card .ic { color: var(--accent); } }
+  :root[data-theme="dark"] .card .ic { color: var(--accent); }
+  :root[data-theme="light"] .card .ic { color: var(--accent-deep); }
+  .card .ic svg { width: 21px; height: 21px; }
+  .card h3 { font-family: var(--font-body); font-size: 17px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 9px; }
+  .card h3 .route { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
+  .card p { margin: 9px 0 0; font-size: 14.5px; color: var(--muted); line-height: 1.55; }
+  .card .use {
+    margin-top: 13px; padding-top: 12px; border-top: 1px dashed var(--border-2);
+    font-size: 13.5px; color: var(--text);
+  }
+  .card .use b { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-deep); font-weight: 700; display: block; margin-bottom: 3px; }
+  @media (prefers-color-scheme: dark) { .card .use b { color: var(--accent); } }
+  :root[data-theme="dark"] .card .use b { color: var(--accent); }
+  :root[data-theme="light"] .card .use b { color: var(--accent-deep); }
+
+  .flow { display: grid; gap: 12px; }
+  .step {
+    display: grid; grid-template-columns: 46px 1fr; gap: 16px; align-items: start;
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .step .n {
+    font-family: var(--font-display); font-weight: 800; font-size: 22px;
+    width: 46px; height: 46px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--text); color: var(--bg-2);
+    letter-spacing: -0.02em;
+  }
+  .step h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; }
+  .step p { margin-top: 5px; font-size: 14.5px; color: var(--muted); }
+  .step .chip {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px;
+    padding: 2px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-deep);
+    margin-top: 8px; letter-spacing: 0.03em;
+  }
+  @media (prefers-color-scheme: dark) { .step .chip { color: var(--accent); } }
+  :root[data-theme="dark"] .step .chip { color: var(--accent); }
+  :root[data-theme="light"] .step .chip { color: var(--accent-deep); }
+
+  .access {
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .access .row {
+    display: grid; grid-template-columns: 1fr; gap: 4px 18px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+  @media (min-width: 600px) {
+    .access .row { grid-template-columns: 160px 1fr; gap: 8px 18px; align-items: baseline; }
+  }
+  .access .row:last-child { border-bottom: 0; }
+  .access .k { font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.11em; color: var(--muted); }
+  .access .v { font-size: 15px; overflow-wrap: anywhere; }
+  .access .v .mono { font-family: var(--font-mono); font-size: 14px; overflow-wrap: anywhere; word-break: normal; }
+  .access .v a { color: var(--accent-deep); text-decoration: none; border-bottom: 1px solid var(--accent-line); }
+  @media (prefers-color-scheme: dark) { .access .v a { color: var(--accent); } }
+  :root[data-theme="dark"] .access .v a { color: var(--accent); }
+  :root[data-theme="light"] .access .v a { color: var(--accent-deep); }
+  .access .v small { color: var(--muted); }
+
+  .note {
+    display: grid; grid-template-columns: 22px 1fr; gap: 12px;
+    background: var(--accent-soft); border: 1px solid var(--accent-line);
+    border-radius: 12px; padding: 15px 17px; margin-top: 16px; font-size: 14px;
+  }
+  .note svg { width: 18px; height: 18px; color: var(--accent-deep); margin-top: 2px; }
+  @media (prefers-color-scheme: dark) { .note svg { color: var(--accent); } }
+  :root[data-theme="dark"] .note svg { color: var(--accent); }
+  :root[data-theme="light"] .note svg { color: var(--accent-deep); }
+  .note b { color: var(--text); }
+
+  footer.foot { margin-top: 70px; padding-top: 26px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13.5px; }
+  footer.foot .brand { font-family: var(--font-display); font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; color: var(--text); font-size: 15px; }
+  .credit {
+    margin-top: 12px; display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted);
+    text-decoration: none;
+  }
+  .credit .studio { position: relative; font-weight: 700; color: var(--text); }
+  .credit .studio::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1.5px;
+    background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .3s ease;
+  }
+  .credit:hover .studio::after { transform: scaleX(1); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(14px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+    section:nth-of-type(1) .reveal { animation-delay: .05s; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="badge"><span class="dot"></span> Web en producción · rtbunker.bellostas.studio</span>
+    <h1>Tu web,<br><span class="thin">por dentro.</span></h1>
+    <p class="lead">Una vuelta completa a RT Bunker: qué ve tu cliente en cada página, cómo compra, y cómo lo gestionas todo tú desde el panel de control. Sin tecnicismos.</p>
+  </header>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">01 — Lo que ve tu cliente</p>
+      <h2>La web pública</h2>
+      <p>Estas son las secciones por las que navega cualquier visitante. Cada una tiene un trabajo claro: enseñar, vender o resolver una duda.</p>
+    </div>
+
+    <div class="grid two">
+
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span>
+        <h3>Inicio <span class="route">/</span></h3>
+        <p>La portada. Presenta la marca, lo más vendido, los servicios y las reseñas. Es el escaparate que decide si el visitante se queda.</p>
+        <div class="use"><b>El cliente</b>Aterriza, entiende de qué va RT Bunker y salta a comprar o a personalizar.</div>
+      </div>
+
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1 13H5L4 7Z"/><path d="M8.5 7a3.5 3.5 0 0 1 7 0"/></svg></span>
+        <h3>Tienda <span class="route">/tienda</span></h3>
+        <p>El catálogo de pegatinas ya diseñadas y packs económicos, ordenados por categorías. Compra directa, sin esperas.</p>
+        <div class="use"><b>El cliente</b>Elige una pegatina, la añade al carrito y paga. Listo para enviar.</div>
+      </div>
+
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg></span>
+        <h3>Personalizadas <span class="route">/personalizadas</span></h3>
+        <p>El corazón de la web. El cliente elige el <b>tipo de producto</b> (vinilos, hojas de pegatinas…) y se abre el configurador: forma, tamaño, cantidad y acabado, con <b>precio al instante</b>.</p>
+        <div class="use"><b>El cliente</b>Configura su pegatina, sube su diseño y ve el precio antes de comprar.</div>
+      </div>
+
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a3.5 3.5 0 0 0-4.9 4.9l-6 6L6 19.2l6-6a3.5 3.5 0 0 0 4.9-4.9l-2.1 2.1-1.8-1.8 1.7-2.3Z"/></svg></span>
+        <h3>Servicios + Portfolio <span class="route">/servicios</span></h3>
+        <p>Los servicios de vehículo (full wrap, chrome delete, ahumado, rotulación…) y una <b>galería de trabajos reales</b> con pestañas por servicio. Al pulsar una foto se abre con título, descripción y carrusel.</p>
+        <div class="use"><b>El cliente</b>Ve trabajos ya hechos y gana confianza antes de pedir presupuesto.</div>
+      </div>
+
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 14.6 9l6 .5-4.6 3.9 1.5 5.9L12 16.9 6.5 19.3 8 13.4 3.4 9.5l6-.5L12 3.5Z"/></svg></span>
+        <h3>RT Bunker Club <span class="route">/planes</span></h3>
+        <p>La suscripción con ventajas: el cliente paga una cuota y recibe <b>créditos</b> para gastar en pegatinas personalizadas, con prioridad de producción.</p>
+        <div class="use"><b>El cliente</b>Se suscribe y usa sus créditos en el configurador como si fuera saldo.</div>
+      </div>
+
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.5 3.1-5.5 7-5.5s7 2 7 5.5"/></svg></span>
+        <h3>Cuenta <span class="route">/cuenta</span></h3>
+        <p>La zona privada del cliente: sus pedidos, sus pegatinas personalizadas (con las pruebas para aprobar), su suscripción y sus direcciones.</p>
+        <div class="use"><b>El cliente</b>Sigue sus pedidos y aprueba las pruebas de diseño desde su móvil.</div>
+      </div>
+
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 3.5V5Z"/><path d="M8.5 10.5h7M8.5 13h4"/></svg></span>
+        <h3>Contacto <span class="route">/contacto</span></h3>
+        <p>WhatsApp directo, dirección del taller y formulario. La vía rápida para dudas y presupuestos a medida.</p>
+        <div class="use"><b>El cliente</b>Escribe por WhatsApp al <span style="font-family:var(--font-mono);font-size:13px">+34 624 69 04 89</span>.</div>
+      </div>
+
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.4-7-10a7 7 0 0 1 7-7 7 7 0 0 1 7 7c0 5.6-7 10-7 10Z"/><path d="M9.5 10.5h5M12 8v5"/></svg></span>
+        <h3>Nosotros <span class="route">/nosotros</span></h3>
+        <p>La historia de Nikita y RT Bunker. El toque humano que convierte una tienda en una marca con la que la gente conecta.</p>
+        <div class="use"><b>El cliente</b>Conoce quién hay detrás y por qué fiarse.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">02 — De la visita a la venta</p>
+      <h2>Cómo compra un cliente</h2>
+      <p>Tres recorridos reales. Todo el cobro es automático con <b>tarjeta (Stripe)</b> y <b>PayPal</b>.</p>
+    </div>
+
+    <div class="flow">
+      <div class="step reveal">
+        <div class="n">1</div>
+        <div>
+          <h3>Pegatina de catálogo</h3>
+          <p>Tienda → elige una pegatina o pack → carrito → paga → recibe email de confirmación. El pedido te aparece en el panel para prepararlo y enviarlo.</p>
+          <span class="chip">Panel → Pedidos</span>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="n">2</div>
+        <div>
+          <h3>Pegatina personalizada</h3>
+          <p>Personalizadas → elige tipo → configura (forma, tamaño, cantidad, acabado) → ve el precio → sube su diseño → paga. El encargo llega a tu panel con el archivo, las medidas y la cantidad. Tú subes una <b>prueba</b>, el cliente la <b>aprueba</b> desde su cuenta, y a producción.</p>
+          <span class="chip">Panel → Pedidos personalizados</span>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="n">3</div>
+        <div>
+          <h3>Suscripción al Club</h3>
+          <p>Planes → se suscribe → cada ciclo recibe créditos → los gasta en el configurador con prioridad. Fidelización e ingresos recurrentes.</p>
+          <span class="chip">Panel → Club / Membresías</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">03 — Tu centro de mando</p>
+      <h2>El panel de control</h2>
+      <p>Todo se gestiona desde un único panel privado (Medusa). Sin tocar código: creas productos, ves pedidos y publicas tu portfolio tú misma.</p>
+    </div>
+
+    <div class="access reveal" style="margin-bottom:16px">
+      <div class="row"><span class="k">Panel</span><span class="v"><a href="https://api.rtbunker.bellostas.studio/app" target="_blank" rel="noopener">api.rtbunker.bellostas.studio/app</a></span></div>
+      <div class="row"><span class="k">Acceso</span><span class="v">Entra con tu email y tu contraseña de administrador.</span></div>
+    </div>
+
+    <div class="grid two">
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5 11 4l9 4.5-9 4.5-7-4.5Z"/><path d="M4 8.5V16l7 4 9-4.5V8.5"/></svg></span>
+        <h3>Productos</h3>
+        <p>Crea y edita pegatinas: nombre, precio, stock, fotos y categoría. Publica o retira artículos con un clic.</p>
+      </div>
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4z"/><path d="M4 7l2-3h12l2 3M9 11h6"/></svg></span>
+        <h3>Pedidos</h3>
+        <p>Cada compra con su estado: pagado, en preparación, enviado. Los datos de envío y la factura, a mano.</p>
+      </div>
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="17.5" r="2.5"/><path d="M8.5 8.3 20 19M8.5 15.7 20 5"/></svg></span>
+        <h3>Pedidos personalizados</h3>
+        <p>El diseño del cliente, medidas y cantidad, todo junto. Sube pruebas, el cliente las aprueba, y controlas el estado hasta producción.</p>
+      </div>
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="1.6"/><path d="m5 17 4.5-4.5L13 16l3-3 3 3"/></svg></span>
+        <h3>Portafolio <span class="route" style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">nuevo</span></h3>
+        <p>Añade tus trabajos tú misma: eliges el servicio, pones título y descripción, subes las fotos y aparecen al instante en la web, en Servicios.</p>
+      </div>
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l2.3 4.9 5.2.5-3.9 3.5 1.2 5.3L12 15.9 7.2 18.7l1.2-5.3-3.9-3.5 5.2-.5L12 4Z"/></svg></span>
+        <h3>Reseñas</h3>
+        <p>Las valoraciones de clientes pasan por tu aprobación antes de publicarse. Tú decides qué se ve.</p>
+      </div>
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l4 3 4-6 4 6 4-3-1.5 10H5.5L4 8Z"/></svg></span>
+        <h3>Club / Membresías</h3>
+        <p>Tus suscriptores, su estado y sus créditos. Ingresos recurrentes bajo control.</p>
+      </div>
+    </div>
+
+    <div class="note reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <div><b>Consejo:</b> guarda el enlace del panel en favoritos. Todo lo que cambies ahí se refleja en la web al momento, sin llamar a nadie.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">04 — Para tener a mano</p>
+      <h2>Accesos rápidos</h2>
+    </div>
+    <div class="access reveal">
+      <div class="row"><span class="k">Web pública</span><span class="v"><a href="https://rtbunker.bellostas.studio" target="_blank" rel="noopener">rtbunker.bellostas.studio</a></span></div>
+      <div class="row"><span class="k">Panel de control</span><span class="v"><a href="https://api.rtbunker.bellostas.studio/app" target="_blank" rel="noopener">api.rtbunker.bellostas.studio/app</a></span></div>
+      <div class="row"><span class="k">Acceso panel</span><span class="v">Con tu email y contraseña de administrador</span></div>
+      <div class="row"><span class="k">WhatsApp</span><span class="v"><span class="mono">+34 624 69 04 89</span></span></div>
+      <div class="row"><span class="k">Taller</span><span class="v">Calle Neto, nave 15 · 50410 Cuarte de Huerva, Zaragoza</span></div>
+      <div class="row"><span class="k">Cobros</span><span class="v">Tarjeta (Stripe) y PayPal · automáticos</span></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="brand">RT Bunker</div>
+    <p style="margin-top:8px">Pegatinas y rotulación de vehículos · Zaragoza. Tu tienda y tu panel, siempre a un clic.</p>
+    <a class="credit" href="https://bellostas.studio" target="_blank" rel="noopener" aria-label="Web diseñada y desarrollada por Bellostas Studio">
+      <span>Diseñado y desarrollado por</span>
+      <span class="studio">Bellostas Studio</span>
+    </a>
+  </footer>
+
+</div>
+</body>
+</html>
