@@ -1,7 +1,7 @@
 'use client'
 
 import { CircleDot, Files, Sparkle, Sparkles, Sticker } from 'lucide-react'
-import { useEffect, useRef, useState, type ComponentType } from 'react'
+import { useState, type ComponentType } from 'react'
 
 import { Reveal } from '@/components/services/reveal'
 import { FaqChat, type FaqChatItem } from '@/components/ui/faq-chat'
@@ -65,24 +65,24 @@ const TYPE_ICONS: Record<ProductTypeId, ComponentType<{ className?: string }>> =
 export function PersonalizadasProductPicker({
   availableCredits = 0,
 }: PersonalizadasProductPickerProps) {
-  // "Vinilos" viene preseleccionado: al entrar ya se ve el configurador.
+  // "Vinilos" viene preseleccionado: al entrar, el configurador ya está listo
+  // más abajo, pero la página SIEMPRE abre arriba del todo.
   const [selected, setSelected] = useState<ProductTypeId | null>(DEFAULT_PRODUCT_TYPE)
 
-  // El scroll solo debe saltar cuando el usuario CAMBIA de tipo, nunca al
-  // cargar la página (si no, entrar en /personalizadas bajaría solo).
-  const isFirstRender = useRef(true)
-
-  // Scroll suave hacia el configurador cuando se selecciona (o cambia) un tipo.
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      return
-    }
-    if (selected === null) return
-    document
-      .getElementById('configurador')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [selected])
+  /**
+   * Baja al configurador. Se llama desde el clic en una tarjeta, nunca desde un
+   * efecto: si se hiciera al montar, entrar en /personalizadas saltaría solo
+   * hacia abajo (además, en desarrollo los efectos corren dos veces).
+   */
+  const handleSelect = (id: ProductTypeId) => {
+    setSelected(id)
+    // Esperamos al repintado para que el configurador ya exista en el DOM.
+    requestAnimationFrame(() => {
+      document
+        .getElementById('configurador')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
 
   return (
     <section className="bg-rt-white-2 py-20 md:py-24">
@@ -109,7 +109,7 @@ export function PersonalizadasProductPicker({
                   disabled={disabled}
                   aria-pressed={isSelected}
                   onClick={() => {
-                    if (p.enabled) setSelected(p.id)
+                    if (p.enabled) handleSelect(p.id)
                   }}
                   className={cn(
                     'group flex h-full w-full flex-col items-center rounded-[24px] border-[1.5px] p-6 text-center transition-all duration-200',

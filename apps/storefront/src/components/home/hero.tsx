@@ -4,13 +4,6 @@ import { Reveal } from '@/components/services/reveal'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/routing'
 
-const HERO_STATS = [
-  { value: '120+', label: 'productos' },
-  { value: '18', label: 'marcas' },
-  { value: '24h', label: 'envío exprés' },
-  { value: '2022', label: 'fabricando' },
-] as const
-
 /**
  * Hero homepage · pieza de conversión.
  *
@@ -34,7 +27,7 @@ export function Hero() {
 
       {/* Altura unificada con /servicios y /personalizadas (78vh) y algo más
           baja que antes, según feedback del cliente. */}
-      <div className="container-page relative flex min-h-[78vh] flex-col items-center justify-center py-16 text-center md:py-20">
+      <div className="container-page relative flex min-h-[64vh] flex-col items-center justify-center py-14 text-center md:py-16">
         <Reveal as="up">
           <span className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-rt-white/15 bg-rt-black/40 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-rt-white/85 font-[family-name:var(--font-heading)] backdrop-blur">
             <span className="inline-flex items-center gap-1.5 text-rt-yellow">
@@ -55,7 +48,7 @@ export function Hero() {
         </Reveal>
 
         <Reveal as="up" delay={120}>
-          <h1 className="mt-6 font-[family-name:var(--font-display)] text-[clamp(54px,9vw,128px)] uppercase leading-[0.92] tracking-[-0.02em]">
+          <h1 className="mt-5 font-[family-name:var(--font-display)] text-[clamp(46px,7.5vw,104px)] uppercase leading-[0.92] tracking-[-0.02em]">
             Pegatinas <span className="text-rt-yellow">premium</span>
             <br />
             para tu coche
@@ -82,20 +75,6 @@ export function Hero() {
           </div>
         </Reveal>
 
-        <Reveal as="up" delay={480}>
-          <dl className="mt-12 grid w-full max-w-3xl grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
-            {HERO_STATS.map((s) => (
-              <div key={s.label} className="flex flex-col items-center">
-                <dt className="font-[family-name:var(--font-display)] text-[30px] uppercase leading-none tracking-[-0.02em] text-rt-white md:text-[34px]">
-                  {s.value}
-                </dt>
-                <dd className="mt-2 text-[11px] uppercase tracking-[0.18em] text-rt-ink-300 font-[family-name:var(--font-heading)] font-bold">
-                  {s.label}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </Reveal>
       </div>
     </section>
   )

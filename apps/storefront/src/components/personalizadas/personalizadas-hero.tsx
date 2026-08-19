@@ -41,9 +41,9 @@ export function PersonalizadasHero() {
         </Reveal>
 
         <Reveal as="up" delay={240}>
+          {/* Máximo dos líneas: el detalle ya se explica en el configurador. */}
           <p className="mt-5 max-w-[560px] text-balance text-[15px] leading-[1.6] text-rt-ink-300 md:text-[16px]">
-            Forma, material, tamaño y cantidad en una sola pantalla. Precio al instante,
-            prueba digital antes de imprimir y envío en 24–48 h a toda España.
+            Precio al instante, prueba digital antes de imprimir y envío en 24–48 h.
           </p>
         </Reveal>
 

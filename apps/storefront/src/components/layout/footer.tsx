@@ -76,15 +76,17 @@ export async function Footer() {
                 >
                   <Mail className="h-4 w-4" /> info@rtbunker.com
                 </a>
+                {/* Mismo tratamiento que el email: los dos son datos de
+                    contacto y deben leerse como una pareja, no como un botón
+                    suelto. */}
                 <a
                   href="https://instagram.com/rtbunker_"
                   target="_blank"
                   rel="noopener"
                   aria-label="Instagram de RT Bunker: @rtbunker_"
-                  className="inline-flex items-center gap-2.5 rounded-full border border-rt-yellow/40 bg-rt-yellow/10 px-4 py-2 text-[15px] font-bold text-rt-yellow transition-colors hover:bg-rt-yellow hover:text-rt-black font-[family-name:var(--font-heading)]"
+                  className="inline-flex items-center gap-2 text-[14px] font-semibold text-rt-yellow hover:underline"
                 >
-                  <Instagram className="h-[18px] w-[18px]" />
-                  @rtbunker_
+                  <Instagram className="h-4 w-4" /> @rtbunker_
                 </a>
               </div>
             </div>

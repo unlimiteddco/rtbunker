@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { setRequestLocale } from 'next-intl/server'
 
 import { Reveal } from '@/components/services/reveal'
-import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/routing'
 
 export async function generateMetadata({
@@ -223,35 +222,6 @@ export default async function NosotrosPage({
         </div>
       </section>
 
-      {/* ─── Firma + CTA ──────────────────────────────────── */}
-      <section className="bg-rt-black py-20 text-rt-white md:py-28">
-        <div className="container-page">
-          <Reveal as="up" className="max-w-[680px]">
-            <p className="font-[family-name:var(--font-display)] text-[clamp(22px,2.8vw,32px)] uppercase leading-[1.1] tracking-[-0.01em]">
-              Gracias por ser parte de esta travesía. No solo personalizamos vehículos:{' '}
-              <span className="text-rt-yellow">creamos experiencias únicas sobre ruedas</span>.
-            </p>
-            <p className="mt-6 font-[family-name:var(--font-heading)] text-[14px] font-bold uppercase tracking-[0.14em] text-rt-ink-300">
-              Nikita · Fundador de RT Bunker
-            </p>
-
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Button asChild variant="primary" size="lg">
-                <Link href="/tienda">
-                  Ver la tienda
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="ghostInv" size="lg">
-                <Link href="/personalizadas">Diseña tu pegatina</Link>
-              </Button>
-              <Button asChild variant="ghostInv" size="lg">
-                <Link href="/servicios">Nuestros servicios</Link>
-              </Button>
-            </div>
-          </Reveal>
-        </div>
-      </section>
     </>
   )
 }
