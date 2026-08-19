@@ -39,10 +39,23 @@ export function Reveal({
     const node = ref.current
     if (!node) return
 
-    if (typeof IntersectionObserver === 'undefined') {
+    // Sin IntersectionObserver, o si el usuario pide menos animación, el
+    // contenido se muestra directamente: nunca debe quedarse invisible.
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+    if (typeof IntersectionObserver === 'undefined' || prefersReduced) {
       node.setAttribute('data-revealed', 'true')
       return
     }
+
+    // Un bloque más alto que la pantalla (p. ej. la sección de FAQ con todas
+    // las respuestas abiertas) tardaría en alcanzar el 15 % visible: la sección
+    // se quedaba en blanco hasta haber bajado mucho. En esos casos basta con
+    // que asome por abajo para mostrarla.
+    const isTall = node.offsetHeight > window.innerHeight * 0.6
+    const effectiveThreshold = isTall ? 0 : threshold
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -55,11 +68,24 @@ export function Reveal({
           }
         }
       },
-      { threshold, rootMargin: '0px 0px -80px 0px' },
+      { threshold: effectiveThreshold, rootMargin: '0px 0px -40px 0px' },
     )
 
     observer.observe(node)
-    return () => observer.disconnect()
+
+    // Red de seguridad: si por lo que sea el observer no llega a disparar
+    // (layout tardío, imágenes que cambian alturas…), mostramos el contenido.
+    const failsafe = window.setTimeout(() => {
+      if (node.getAttribute('data-revealed') !== 'true') {
+        const box = node.getBoundingClientRect()
+        if (box.top < window.innerHeight) node.setAttribute('data-revealed', 'true')
+      }
+    }, 1200)
+
+    return () => {
+      observer.disconnect()
+      window.clearTimeout(failsafe)
+    }
   }, [threshold, repeat])
 
   const Tag = tag as 'div'

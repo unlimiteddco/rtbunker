@@ -1,4 +1,3 @@
-import { Reveal } from '@/components/services/reveal'
 import { FaqChat, type FaqChatItem } from '@/components/ui/faq-chat'
 
 const FAQS: FaqChatItem[] = [
@@ -48,9 +47,10 @@ export function ServicesFaq() {
   return (
     <section className="bg-rt-white py-20 md:py-28">
       <div className="container-page">
-        <Reveal as="up">
-          <FaqChat eyebrow="Servicios" title="Preguntas frecuentes" items={FAQS} />
-        </Reveal>
+        {/* Sin animación de entrada: con las respuestas abiertas el bloque mide
+            más que la pantalla y, envuelto en un Reveal, la sección se quedaba
+            en blanco hasta haber bajado mucho. */}
+        <FaqChat eyebrow="Servicios" title="Preguntas frecuentes" items={FAQS} />
 
         <p className="mx-auto mt-10 max-w-[560px] text-center text-[15px] leading-[1.65] text-rt-ink-500">
           Si la tuya no está aquí, escríbenos por WhatsApp y te respondemos al momento.

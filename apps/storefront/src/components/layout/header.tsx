@@ -15,10 +15,12 @@ interface HeaderProps {
 }
 
 /**
- * Header al estilo RT Bunker: barra carbón con logo blanco real (PNG en
- * /public/logo-white.png), nav UPPERCASE Montserrat tracking ancho, e
- * iconos a la derecha. El item "Personalizadas" lleva un badge "NUEVO"
- * amarillo para destacar el lanzamiento.
+ * Header al estilo RT Bunker: barra carbón con el LOGO CENTRADO, navegación a
+ * la izquierda y acciones (buscador, cuenta, carrito) a la derecha.
+ *
+ * La barra es una rejilla de tres columnas `[1fr_auto_1fr]`: las dos laterales
+ * miden lo mismo por definición, así que el logo cae siempre en el centro
+ * exacto sin depender de lo que ocupen nav y acciones.
  */
 export async function Header({ locale }: HeaderProps) {
   const t = await getTranslations('nav')
@@ -31,52 +33,62 @@ export async function Header({ locale }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-rt-black-3 bg-rt-black text-rt-white">
-      <div className="container-page flex h-16 items-center gap-4 md:h-[72px]">
-        <MobileNav locale={locale} roots={shopMenu} />
+      <div className="container-page grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-4 md:h-[72px]">
+        {/* ─── Izquierda: navegación ─────────────────────────── */}
+        <div className="flex min-w-0 items-center">
+          <MobileNav locale={locale} roots={shopMenu} />
 
-        <Link href="/" aria-label="RT Bunker · inicio" className="flex items-center">
+          <nav className="hidden items-center gap-7 md:flex lg:gap-8">
+            <ShopMegaMenu roots={shopMenu} linkClass={linkClass} />
+            <Link href="/servicios" className={linkClass}>
+              Servicios
+            </Link>
+            <Link href="/personalizadas" className={`${linkClass} relative`}>
+              Personalizadas
+              <span
+                aria-label="Novedad"
+                className="pointer-events-none absolute -right-2 -top-2.5 inline-flex items-center rounded-full bg-rt-yellow px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-rt-black"
+              >
+                Nuevo
+              </span>
+            </Link>
+          </nav>
+        </div>
+
+        {/* ─── Centro: logo ──────────────────────────────────── */}
+        <Link
+          href="/"
+          aria-label="RT Bunker · inicio"
+          className="flex items-center justify-center"
+        >
           <Image
             src="/logo-white.png"
             alt="RT Bunker"
             width={1166}
             height={188}
             priority
-            sizes="(max-width: 768px) 120px, 140px"
+            sizes="(max-width: 768px) 120px, 160px"
             className="h-6 w-auto md:h-7"
           />
         </Link>
 
-        <nav className="ml-8 hidden items-center gap-8 md:flex">
-          <ShopMegaMenu roots={shopMenu} linkClass={linkClass} />
-          <Link href="/servicios" className={linkClass}>
-            Servicios
-          </Link>
-          <Link href="/personalizadas" className={`${linkClass} relative`}>
-            Personalizadas
-            <span
-              aria-label="Novedad"
-              className="pointer-events-none absolute -right-2 -top-2.5 inline-flex items-center rounded-full bg-rt-yellow px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-rt-black"
-            >
-              Nuevo
-            </span>
-          </Link>
+        {/* ─── Derecha: acciones ─────────────────────────────── */}
+        <div className="flex min-w-0 items-center justify-end gap-1 md:gap-2">
           <Link
             href="/planes"
-            className="inline-flex items-center gap-1.5 rounded-full bg-rt-yellow px-3 py-1.5 font-[family-name:var(--font-heading)] text-[12px] font-bold uppercase tracking-wider text-rt-black transition-colors hover:bg-rt-yellow-deep"
+            className="mr-1 hidden items-center gap-1.5 rounded-full bg-rt-yellow px-3 py-1.5 font-[family-name:var(--font-heading)] text-[12px] font-bold uppercase tracking-wider text-rt-black transition-colors hover:bg-rt-yellow-deep lg:inline-flex"
           >
             <Crown className="h-3.5 w-3.5" />
             Club
           </Link>
-        </nav>
 
-        <div className="ml-auto flex items-center gap-1 md:gap-2">
-          <div className="hidden lg:block lg:w-72">
+          <div className="hidden xl:block xl:w-56">
             <SearchBar />
           </div>
           <Link
             href="/tienda"
             aria-label={t('search')}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-rt-white transition-colors hover:bg-rt-black-2 lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-rt-white transition-colors hover:bg-rt-black-2 xl:hidden"
           >
             <Search className="h-4 w-4" />
           </Link>

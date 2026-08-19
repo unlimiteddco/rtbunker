@@ -83,12 +83,13 @@ export default async function PlanesPage({
         </div>
       </section>
 
-      {/* ─── FAQ del Club (chat) ──────────────────────────── */}
+      {/* ─── FAQ del Club (chat) ──────────────────────────────
+          Sin animación de entrada: con las respuestas abiertas el bloque mide
+          más que la pantalla y, envuelto en un Reveal, la sección se quedaba
+          en blanco hasta haber bajado mucho. */}
       <section className="bg-rt-white py-16 md:py-24">
         <div className="container-page">
-          <Reveal as="up">
-            <FaqChat eyebrow="RT Bunker Club" title="Preguntas frecuentes" items={CLUB_FAQS} />
-          </Reveal>
+          <FaqChat eyebrow="RT Bunker Club" title="Preguntas frecuentes" items={CLUB_FAQS} />
         </div>
       </section>
 

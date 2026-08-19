@@ -183,15 +183,15 @@ export function PersonalizadasProductPicker({
             />
           </div>
 
-          {/* FAQ en formato chat, justo debajo del configurador. */}
+          {/* FAQ en formato chat, justo debajo del configurador. Sin animación
+              de entrada: con las respuestas abiertas el bloque mide más que la
+              pantalla y se quedaría en blanco hasta haber bajado mucho. */}
           <div className="container-page pb-4 pt-12 md:pt-16">
-            <Reveal as="up">
-              <FaqChat
-                eyebrow="Antes de pedir"
-                title="Preguntas frecuentes"
-                items={CONFIGURATOR_FAQS}
-              />
-            </Reveal>
+            <FaqChat
+              eyebrow="Antes de pedir"
+              title="Preguntas frecuentes"
+              items={CONFIGURATOR_FAQS}
+            />
           </div>
         </>
       ) : null}
