@@ -2,11 +2,11 @@ import { setRequestLocale } from 'next-intl/server'
 
 import { AboutBanner } from '@/components/home/about-banner'
 import { CategoryGrid } from '@/components/home/category-grid'
+import { CustomStickersCta } from '@/components/home/custom-stickers-cta'
 import { Hero } from '@/components/home/hero'
 import { HomeFaq } from '@/components/home/home-faq'
 import { HomeTestimonials } from '@/components/home/home-testimonials'
 import { ScrollShowcase } from '@/components/home/scroll-showcase'
-import { StickerTypes } from '@/components/home/sticker-types'
 import { TrustBadges } from '@/components/home/trust-badges'
 import { WhyUs } from '@/components/home/why-us'
 import { ProductCard } from '@/components/product/product-card'
@@ -32,8 +32,8 @@ export default async function HomePage({ params }: HomeProps) {
   return (
     <>
       <Hero />
-      <StickerTypes />
       <CategoryGrid locale={locale} />
+      <CustomStickersCta />
       <TrustBadges />
       {/* ScrollShowcase cierra con "El taller donde nacen las RT Bunker": el
           banner "Sobre nosotros" va justo aquí, pegado a esa sección. */}

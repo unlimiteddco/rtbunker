@@ -33,7 +33,7 @@ interface MobileNavProps {
 }
 
 const SECONDARY = [
-  { href: '/personalizadas', label: 'Personalizadas', icon: Sparkles, badge: 'Nuevo' },
+  { href: '/personalizadas', label: 'Personalizadas', icon: Sparkles },
   { href: '/planes', label: 'Hazte socio', icon: Crown, badge: 'Club' },
   { href: '/servicios', label: 'Servicios', icon: Wrench },
   { href: '/nosotros', label: 'Nosotros', icon: Info },

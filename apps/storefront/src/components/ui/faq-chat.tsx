@@ -1,13 +1,5 @@
-'use client'
-
 import { MessageCircleQuestion } from 'lucide-react'
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
 import { cn } from '@/lib/cn'
 
 export interface FaqChatItem {
@@ -26,20 +18,18 @@ interface FaqChatProps {
 
 /**
  * FAQ en formato conversación (estilo chat): cada pregunta es una burbuja con
- * avatar a la izquierda y, al abrirla, la respuesta aparece como una segunda
- * burbuja del negocio, indentada y con fondo de marca.
+ * avatar a la izquierda y, debajo, la respuesta como una segunda burbuja del
+ * negocio, indentada y con fondo de marca.
  *
- * Todas las respuestas salen ABIERTAS de entrada (se lee como una conversación
- * completa); el usuario puede plegar las que no le interesen.
+ * Petición del cliente: las preguntas NO se pliegan. Todo queda SIEMPRE
+ * visible, se lee como una conversación completa. Sin acordeón, sin estado y
+ * sin JS: es un componente de servidor puro.
  *
- * Accesibilidad: acordeón Radix (múltiple), con navegación por teclado y aria
- * gestionados por la primitiva.
+ * Accesibilidad: lista de definiciones (`dl` → `dt` pregunta / `dd`
+ * respuesta), legible por lectores de pantalla sin interacción.
  */
 export function FaqChat({ items, title, eyebrow, className }: FaqChatProps) {
   if (items.length === 0) return null
-
-  // Todas abiertas por defecto.
-  const allValues = items.map((_, i) => `faq-chat-${i}`)
 
   return (
     <div className={cn('mx-auto w-full max-w-3xl', className)}>
@@ -50,47 +40,38 @@ export function FaqChat({ items, title, eyebrow, className }: FaqChatProps) {
         </header>
       ) : null}
 
-      <Accordion type="multiple" defaultValue={allValues} className="flex flex-col gap-3">
-        {items.map((item, i) => (
-          <AccordionItem
-            key={item.q}
-            value={`faq-chat-${i}`}
-            className="group border-b-0"
-          >
-            <div className="flex items-start gap-3">
-              {/* Avatar de la pregunta */}
+      <dl className="flex flex-col gap-3">
+        {items.map((item) => (
+          <div key={item.q}>
+            {/* Pregunta: avatar + burbuja clara */}
+            <dt className="flex items-start gap-3">
               <span
                 aria-hidden
-                className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rt-ink-100 bg-rt-white text-rt-ink-500 transition-colors duration-200 group-data-[state=open]:border-rt-yellow group-data-[state=open]:bg-rt-yellow group-data-[state=open]:text-rt-black"
+                className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rt-yellow bg-rt-yellow text-rt-black"
               >
                 <MessageCircleQuestion className="h-[18px] w-[18px]" />
               </span>
 
-              <div className="min-w-0 flex-1">
-                {/* Burbuja pregunta */}
-                <AccordionTrigger className="w-full gap-4 rounded-2xl rounded-tl-md border border-rt-ink-100 bg-rt-white px-5 py-4 text-left font-[family-name:var(--font-heading)] text-[15px] font-bold leading-[1.4] text-rt-black transition-colors duration-200 hover:no-underline hover:border-rt-ink-300 data-[state=open]:border-rt-yellow data-[state=open]:shadow-[var(--shadow-md)] md:text-[16px] [&>svg]:text-rt-ink-500 [&[data-state=open]>svg]:text-rt-yellow-deep">
-                  {item.q}
-                </AccordionTrigger>
+              <span className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-rt-yellow bg-rt-white px-5 py-4 font-[family-name:var(--font-heading)] text-[15px] font-bold leading-[1.4] text-rt-black shadow-[var(--shadow-md)] md:text-[16px]">
+                {item.q}
+              </span>
+            </dt>
 
-                {/* Burbuja respuesta (el negocio contesta) */}
-                <AccordionContent className="pb-0 pt-3 text-rt-ink-700">
-                  <div className="flex items-start gap-3 pl-4 sm:pl-8">
-                    <span
-                      aria-hidden
-                      className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rt-black font-[family-name:var(--font-display)] text-[12px] leading-none tracking-[0.02em] text-rt-yellow"
-                    >
-                      RT
-                    </span>
-                    <div className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-rt-yellow/30 bg-rt-yellow/10 px-5 py-4 text-[14px] leading-[1.65] text-rt-ink-700 md:text-[15px]">
-                      {item.a}
-                    </div>
-                  </div>
-                </AccordionContent>
-              </div>
-            </div>
-          </AccordionItem>
+            {/* Respuesta: el negocio contesta, indentada bajo la pregunta */}
+            <dd className="ml-0 mt-3 flex items-start gap-3 pl-16 text-rt-ink-700 sm:pl-20">
+              <span
+                aria-hidden
+                className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rt-black font-[family-name:var(--font-display)] text-[12px] leading-none tracking-[0.02em] text-rt-yellow"
+              >
+                RT
+              </span>
+              <span className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-rt-yellow/30 bg-rt-yellow/10 px-5 py-4 text-[14px] leading-[1.65] text-rt-ink-700 md:text-[15px]">
+                {item.a}
+              </span>
+            </dd>
+          </div>
         ))}
-      </Accordion>
+      </dl>
     </div>
   )
 }

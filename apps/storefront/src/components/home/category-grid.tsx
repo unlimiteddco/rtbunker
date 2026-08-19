@@ -19,19 +19,19 @@ interface CategoryTile {
   presetImage: string | null
 }
 
-/** Máximo de tiles: la rejilla está pensada para una sola fila en desktop. */
-const MAX_TILES = 4
+/** Máximo de tiles: la rejilla está pensada para dos filas de 4 en desktop. */
+const MAX_TILES = 8
 
 /**
- * 4 tiles (una sola fila en desktop, como la web antigua) con la foto de un
- * producto de la categoría como fondo. Un gradiente carbón asegura que el
+ * Hasta 8 tiles (2 columnas en móvil, 4 en desktop → dos filas) con la foto de
+ * un producto de la categoría como fondo. Un gradiente carbón asegura que el
  * título blanco siempre se lee, incluso sobre fotos claras. Si una categoría
  * aún no tiene producto / thumbnail, cae a un fondo sólido alternando carbón
  * / Tiffany.
  *
  * Origen de datos: categorías destacadas del backend (editables desde el
  * admin). Si no hay ninguna publicada o el backend falla, se usa el
- * comportamiento histórico: las 4 primeras categorías reales de Medusa.
+ * comportamiento histórico: las 8 primeras categorías reales de Medusa.
  */
 export async function CategoryGrid({ locale }: CategoryGridProps) {
   const featured = await getFeaturedCategories()
