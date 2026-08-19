@@ -17,7 +17,7 @@ const INFO_ITEMS: InfoItem[] = [
   {
     icon: MapPin,
     label: 'Dirección',
-    primary: 'Calle Neto, nave 15 · 50410', // TODO confirmar CP y ciudad
+    primary: 'Calle Aneto 15, Nave A6 · 50410',
     secondary: 'Cuarte de Huerva, Zaragoza',
   },
   {

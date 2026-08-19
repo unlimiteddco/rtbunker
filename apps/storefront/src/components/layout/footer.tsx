@@ -67,15 +67,26 @@ export async function Footer() {
               <p className="mt-4 max-w-[340px] text-[14px] leading-[1.6] text-rt-ink-300">
                 Fabricantes de pegatinas premium para coches.
                 <br />
-                Calle Neto, nave 15 · 50410 — Cuarte de Huerva, Zaragoza, España.
-                {/* TODO confirmar CP y ciudad */}
+                Calle Aneto 15, Nave A6 · 50410 — Cuarte de Huerva, Zaragoza, España.
               </p>
-              <a
-                href="mailto:info@rtbunker.com"
-                className="mt-5 inline-flex items-center gap-2 text-[14px] font-semibold text-rt-yellow hover:underline"
-              >
-                <Mail className="h-4 w-4" /> info@rtbunker.com
-              </a>
+              <div className="mt-5 flex flex-col items-start gap-3">
+                <a
+                  href="mailto:info@rtbunker.com"
+                  className="inline-flex items-center gap-2 text-[14px] font-semibold text-rt-yellow hover:underline"
+                >
+                  <Mail className="h-4 w-4" /> info@rtbunker.com
+                </a>
+                <a
+                  href="https://instagram.com/rtbunker_"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Instagram de RT Bunker: @rtbunker_"
+                  className="inline-flex items-center gap-2.5 rounded-full border border-rt-yellow/40 bg-rt-yellow/10 px-4 py-2 text-[15px] font-bold text-rt-yellow transition-colors hover:bg-rt-yellow hover:text-rt-black font-[family-name:var(--font-heading)]"
+                >
+                  <Instagram className="h-[18px] w-[18px]" />
+                  @rtbunker_
+                </a>
+              </div>
             </div>
 
             {cols.map((col) => (
@@ -100,20 +111,26 @@ export async function Footer() {
           </div>
 
           <div className="mt-12 flex flex-col gap-3 border-t border-rt-black-3 pt-6 text-[12px] text-rt-ink-500 md:flex-row md:items-center md:justify-between">
-            <span>
-              © {year} RT Bunker. {t('rights')}
-            </span>
-            <div className="flex items-center gap-5">
-              {/* TODO Nikita: handle real */}
+            <div className="flex flex-col items-start gap-1.5">
+              <span>
+                © {year} RT Bunker. {t('rights')}
+              </span>
+              {/* Crédito Bellostas Studio */}
               <a
-                href="https://instagram.com/rtbunker_oficial"
-                aria-label="Instagram"
+                href="https://bellostas.studio"
                 target="_blank"
-                rel="noreferrer"
-                className="text-rt-ink-500 transition-colors hover:text-rt-yellow"
+                rel="noopener"
+                className="group inline-flex items-center gap-1.5 text-[12px] text-rt-ink-500 transition-colors hover:text-rt-white"
+                aria-label="Web diseñada y desarrollada por Bellostas Studio"
               >
-                <Instagram className="h-4 w-4" />
+                <span>Diseñado y desarrollado por</span>
+                <span className="relative font-semibold tracking-tight text-rt-white/60 transition-colors group-hover:text-rt-white">
+                  Bellostas Studio
+                  <span className="absolute -bottom-0.5 left-0 right-0 h-px origin-left scale-x-0 bg-rt-yellow transition-transform duration-300 group-hover:scale-x-100" />
+                </span>
               </a>
+            </div>
+            <div className="flex items-center gap-5">
               <CookiePreferencesButton className="hover:text-rt-yellow" />
               <Link href="/pagina/privacidad" className="hover:text-rt-yellow">
                 Privacidad

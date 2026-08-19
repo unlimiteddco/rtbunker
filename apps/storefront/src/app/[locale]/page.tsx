@@ -1,5 +1,6 @@
 import { setRequestLocale } from 'next-intl/server'
 
+import { AboutBanner } from '@/components/home/about-banner'
 import { CategoryGrid } from '@/components/home/category-grid'
 import { Hero } from '@/components/home/hero'
 import { HomeFaq } from '@/components/home/home-faq'
@@ -34,7 +35,10 @@ export default async function HomePage({ params }: HomeProps) {
       <StickerTypes />
       <CategoryGrid locale={locale} />
       <TrustBadges />
+      {/* ScrollShowcase cierra con "El taller donde nacen las RT Bunker": el
+          banner "Sobre nosotros" va justo aquí, pegado a esa sección. */}
       <ScrollShowcase />
+      <AboutBanner />
       <WhyUs />
 
       {products.length > 0 ? (

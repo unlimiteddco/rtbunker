@@ -32,7 +32,9 @@ export function Hero() {
         className="pointer-events-none absolute -left-24 -bottom-20 h-[320px] w-[320px] rounded-full bg-rt-yellow/12 blur-3xl"
       />
 
-      <div className="container-page relative flex flex-col items-center py-16 text-center md:py-24">
+      {/* Altura unificada con /servicios y /personalizadas (78vh) y algo más
+          baja que antes, según feedback del cliente. */}
+      <div className="container-page relative flex min-h-[78vh] flex-col items-center justify-center py-16 text-center md:py-20">
         <Reveal as="up">
           <span className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-rt-white/15 bg-rt-black/40 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-rt-white/85 font-[family-name:var(--font-heading)] backdrop-blur">
             <span className="inline-flex items-center gap-1.5 text-rt-yellow">

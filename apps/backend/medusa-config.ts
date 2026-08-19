@@ -188,6 +188,12 @@ export default defineConfig({
       resolve: './src/modules/portfolio',
     },
 
+    // ───── Contenido web editable desde el admin (módulo propio) ────
+    // Servicios, pasos del proceso y categorías destacadas de la home.
+    {
+      resolve: './src/modules/site-content',
+    },
+
     // ───── Notificaciones: Resend (provider custom local) ────────────
     {
       resolve: '@medusajs/medusa/notification',

@@ -22,6 +22,10 @@ const config: NextConfig = {
       { protocol: 'https', hostname: '**.r2.cloudflarestorage.com' },
       { protocol: 'https', hostname: '**.r2.dev' },
       { protocol: 'https', hostname: 'media.example.com' },
+      // Imágenes servidas por el backend local en desarrollo (file-local →
+      // http://localhost:9000/static/...). Sin esto, next/image las rechaza y
+      // el producto aparece sin foto en local.
+      { protocol: 'http', hostname: 'localhost', port: '9000' },
     ],
   },
   transpilePackages: ['@rtbunker/ui'],

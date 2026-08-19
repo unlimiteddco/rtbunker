@@ -4,6 +4,7 @@ import { CircleDot, Files, Sparkle, Sparkles, Sticker } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 
 import { Reveal } from '@/components/services/reveal'
+import { FaqChat, type FaqChatItem } from '@/components/ui/faq-chat'
 import { cn } from '@/lib/cn'
 
 import { PersonalizadasCompact } from './personalizadas-compact'
@@ -13,6 +14,38 @@ interface PersonalizadasProductPickerProps {
   /** Créditos disponibles del socio (0 si no es socio o no tiene). */
   availableCredits?: number
 }
+
+// FAQ que acompaña al configurador (solo visible tras elegir un tipo).
+const CONFIGURATOR_FAQS: FaqChatItem[] = [
+  {
+    q: '¿Qué formatos de archivo aceptamos?',
+    a: 'Aceptamos archivos PNG, JPG, PDF, SVG y AI. Para obtener los mejores resultados con las pegatinas holográficas, suba archivos de alta resolución (300 ppp o superior) con fondo transparente, si es posible. ¡Los archivos PNG funcionan de maravilla para la mayoría de los diseños!',
+  },
+  {
+    q: '¿Las pegatinas de vinilo son impermeables?',
+    a: '¡Sí! Nuestras pegatinas de vinilo son impermeables, resistentes a la intemperie y con protección UV. Son perfectas para usar en exteriores, en coches, botellas de agua, neveras portátiles y mucho más. Incluso se pueden lavar en el lavavajillas (se recomienda la rejilla superior).',
+  },
+  {
+    q: '¿Cuánto duran las pegatinas de vinilo?',
+    a: 'Nuestras pegatinas de vinilo de alta calidad están diseñadas para durar de 3 a 5 años en exteriores e incluso más en interiores. Son resistentes a los arañazos y no se decoloran ni se despegan fácilmente si se aplican correctamente sobre superficies limpias y lisas.',
+  },
+  {
+    q: '¿Puedo obtener una prueba antes de imprimir?',
+    a: '¡Por supuesto! Ofrecemos una prueba gratuita en línea antes de la impresión para que veas exactamente cómo quedarán tus pegatinas. Recibirás la prueba en 24 horas y podrás solicitar revisiones si es necesario.',
+  },
+  {
+    q: '¿Cuál es la cantidad mínima de pedido?',
+    a: 'Nuestro pedido mínimo es de 15 pegatinas, lo que lo hace perfecto para pequeñas empresas, eventos o proyectos personales. Ofrecemos descuentos por volumen a partir de 100 pegatinas.',
+  },
+  {
+    q: '¿Cuánto tarda el envío?',
+    a: 'Los pedidos estándar se imprimen en 24-48 horas y se envían por CORREOS (2-4 días hábiles). Los miembros Pro disfrutan de envío gratuito en 2 días en todos sus pedidos. También ofrecemos opciones de impresión urgente y envío exprés.',
+  },
+  {
+    q: '¿Puedo usar pegatinas de vinilo en exteriores?',
+    a: '¡Sí! Nuestras pegatinas de vinilo están diseñadas específicamente para uso exterior. Son resistentes a la intemperie, cuentan con protección UV y soportan la lluvia, el sol y los cambios de temperatura. Perfectas para ventanas de coche, equipos de exterior y mucho más.',
+  },
+]
 
 // Icono lucide por tipo de producto (Nikita pondrá fotos reales más adelante).
 const TYPE_ICONS: Record<ProductTypeId, ComponentType<{ className?: string }>> = {
@@ -136,15 +169,28 @@ export function PersonalizadasProductPicker({
 
       {/* ─── Configurador embebido (solo tras seleccionar) ────── */}
       {selected !== null ? (
-        <div id="configurador" className="mt-12 scroll-mt-24">
-          <PersonalizadasCompact
-            key={selected}
-            initialProductType={selected}
-            showTypeStep={false}
-            showHero={false}
-            availableCredits={availableCredits}
-          />
-        </div>
+        <>
+          <div id="configurador" className="mt-12 scroll-mt-24">
+            <PersonalizadasCompact
+              key={selected}
+              initialProductType={selected}
+              showTypeStep={false}
+              showHero={false}
+              availableCredits={availableCredits}
+            />
+          </div>
+
+          {/* FAQ en formato chat, justo debajo del configurador. */}
+          <div className="container-page pb-4 pt-12 md:pt-16">
+            <Reveal as="up">
+              <FaqChat
+                eyebrow="Antes de pedir"
+                title="Preguntas frecuentes"
+                items={CONFIGURATOR_FAQS}
+              />
+            </Reveal>
+          </div>
+        </>
       ) : null}
     </section>
   )

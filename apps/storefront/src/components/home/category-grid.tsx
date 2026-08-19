@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react'
 
 import { Link } from '@/i18n/routing'
 import { listCategories, listProducts } from '@/lib/products'
+import { getFeaturedCategories } from '@/lib/site-content'
 
 interface CategoryGridProps {
   /** Necesario para resolver el region_id al pedir el primer producto
@@ -9,20 +10,65 @@ interface CategoryGridProps {
   locale: string
 }
 
+/** Tile ya resuelto y listo para pintar. */
+interface CategoryTile {
+  id: string
+  name: string
+  handle: string
+  /** Foto fijada desde el admin; si es null se busca la del 1er producto. */
+  presetImage: string | null
+}
+
+/** Máximo de tiles: la rejilla está pensada para una sola fila en desktop. */
+const MAX_TILES = 4
+
 /**
- * 8 tiles con la foto de un producto de la categoría como fondo. Un
- * gradiente carbón asegura que el título blanco siempre se lee, incluso
- * sobre fotos claras. Si una categoría aún no tiene producto / thumbnail,
- * cae a un fondo sólido alternando carbón / Tiffany.
+ * 4 tiles (una sola fila en desktop, como la web antigua) con la foto de un
+ * producto de la categoría como fondo. Un gradiente carbón asegura que el
+ * título blanco siempre se lee, incluso sobre fotos claras. Si una categoría
+ * aún no tiene producto / thumbnail, cae a un fondo sólido alternando carbón
+ * / Tiffany.
+ *
+ * Origen de datos: categorías destacadas del backend (editables desde el
+ * admin). Si no hay ninguna publicada o el backend falla, se usa el
+ * comportamiento histórico: las 4 primeras categorías reales de Medusa.
  */
 export async function CategoryGrid({ locale }: CategoryGridProps) {
-  const categories = (await listCategories()).slice(0, 8)
+  const featured = await getFeaturedCategories()
+
+  // Resolvemos cada destacada contra la categoría real por handle. Las que no
+  // existen se descartan (el enlace a /tienda no daría resultados).
+  const allCategories = featured.length > 0 ? await listCategories() : []
+  const curated: CategoryTile[] = featured.flatMap((f) => {
+    const cat = allCategories.find((c) => c.handle === f.categoryHandle)
+    if (!cat) return []
+    return [
+      {
+        id: cat.id,
+        name: f.label ?? cat.name,
+        handle: cat.handle,
+        presetImage: f.image ?? null,
+      },
+    ]
+  })
+
+  const categories: CategoryTile[] =
+    curated.length > 0
+      ? curated.slice(0, MAX_TILES)
+      : (await listCategories()).slice(0, MAX_TILES).map((c) => ({
+          id: c.id,
+          name: c.name,
+          handle: c.handle,
+          presetImage: null,
+        }))
+
   if (categories.length === 0) return null
 
-  // En paralelo: para cada categoría pedimos UN producto solo para sacar
-  // su thumbnail. Si no hay, queda null y usamos fallback.
+  // En paralelo: para cada categoría sin foto fijada pedimos UN producto solo
+  // para sacar su thumbnail. Si no hay, queda null y usamos fallback.
   const withImages = await Promise.all(
-    categories.map(async (cat) => {
+    categories.map(async (cat): Promise<CategoryTile & { image: string | null }> => {
+      if (cat.presetImage) return { ...cat, image: cat.presetImage }
       try {
         const { products } = await listProducts({
           countryCode: locale,
@@ -31,7 +77,7 @@ export async function CategoryGrid({ locale }: CategoryGridProps) {
         })
         return { ...cat, image: products[0]?.thumbnail ?? null }
       } catch {
-        return { ...cat, image: null as string | null }
+        return { ...cat, image: null }
       }
     }),
   )

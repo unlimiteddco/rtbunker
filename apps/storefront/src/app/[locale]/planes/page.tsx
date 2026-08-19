@@ -4,6 +4,7 @@ import { setRequestLocale } from 'next-intl/server'
 
 import { PlanCheckoutButton } from '@/components/memberships/plan-checkout-button'
 import { Reveal } from '@/components/services/reveal'
+import { FaqChat, type FaqChatItem } from '@/components/ui/faq-chat'
 import { Link } from '@/i18n/routing'
 import { cn } from '@/lib/cn'
 import { MEMBERSHIP_TIERS, type MembershipTier, tierSavingsPct } from '@/lib/memberships'
@@ -80,8 +81,17 @@ export default async function PlanesPage({
         </div>
       </section>
 
-      {/* ─── Cómo funcionan los créditos ──────────────────── */}
+      {/* ─── FAQ del Club (chat) ──────────────────────────── */}
       <section className="bg-rt-white py-16 md:py-24">
+        <div className="container-page">
+          <Reveal as="up">
+            <FaqChat eyebrow="RT Bunker Club" title="Preguntas frecuentes" items={CLUB_FAQS} />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ─── Cómo funcionan los créditos ──────────────────── */}
+      <section className="bg-rt-white-2 py-16 md:py-24">
         <div className="container-page">
           <Reveal as="up" className="mx-auto max-w-[640px] text-center">
             <p className="rt-eyebrow text-rt-yellow-deep">Cómo funciona</p>
@@ -126,25 +136,10 @@ export default async function PlanesPage({
         </div>
       </section>
 
-      {/* ─── FAQ ──────────────────────────────────────────── */}
-      <section className="bg-rt-white-2 py-16 md:py-24">
+      {/* ─── CTA final ────────────────────────────────────── */}
+      <section className="bg-rt-white py-16 md:py-24">
         <div className="container-page mx-auto max-w-2xl">
-          <Reveal as="up">
-            <p className="rt-eyebrow text-rt-yellow-deep">Preguntas frecuentes</p>
-            <h2 className="mt-3 rt-h2">Antes de hacerte socio</h2>
-          </Reveal>
-          <dl className="mt-8 divide-y divide-rt-ink-100">
-            {FAQ.map((item) => (
-              <div key={item.q} className="py-5">
-                <dt className="font-[family-name:var(--font-heading)] text-[16px] font-bold text-rt-black">
-                  {item.q}
-                </dt>
-                <dd className="mt-2 text-[15px] leading-[1.6] text-rt-ink-500">{item.a}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <div className="mt-10 rounded-[20px] bg-rt-black p-8 text-center text-rt-white">
+          <div className="rounded-[20px] bg-rt-black p-8 text-center text-rt-white">
             <p className="font-[family-name:var(--font-display)] text-[clamp(22px,3vw,32px)] uppercase leading-[1.1]">
               ¿Aún con dudas?
             </p>
@@ -248,21 +243,33 @@ function PlanCard({ tier }: { tier: MembershipTier }) {
   )
 }
 
-const FAQ = [
+const CLUB_FAQS: FaqChatItem[] = [
   {
-    q: '¿Qué son los créditos y cómo los uso?',
-    a: 'Cada crédito equivale a una pegatina personalizada de 5, 7 o 9 cm en cualquier acabado. Al diseñar tu pegatina podrás canjear créditos en lugar de pagar. Se recargan cada mes con tu suscripción.',
+    q: '¿Diseñas tú las pegatinas para mí?',
+    a: 'No, tú subes tus propios diseños, logotipo, lo que quieras, y nosotros te lo imprimimos y enviamos. Puedes acumular créditos indefinidamente.',
   },
   {
-    q: '¿El descuento se aplica a todo?',
-    a: 'Sí. Tu descuento de socio (5% en Bronce, 10% en Plata y Gold) se aplica automáticamente a todos tus pedidos de la tienda mientras tu suscripción esté activa.',
+    q: '¿Cómo funcionan los créditos de las pegatinas?',
+    a: 'Cada mes recibirás créditos para pegatinas personalizadas que podrás usar para añadir pegatinas a cualquier pedido, o simplemente solicitar tus pegatinas mensuales sin coste adicional. Todas están impresas en material de alta calidad y resistente a la intemperie.',
   },
   {
-    q: '¿Puedo cancelar cuando quiera?',
-    a: 'Por supuesto. Gestionas tu suscripción desde tu cuenta y puedes cancelar en cualquier momento. Mantendrás los beneficios hasta el final del ciclo ya pagado.',
+    q: '¿De qué tamaño son los créditos de las pegatinas?',
+    a: 'Los créditos para pegatinas son válidos para pegatinas de 5, 7 y 9 cm. Sin embargo, las de 5 cm son las más comunes para botellas de agua, portátiles, neveras portátiles, etc.',
   },
   {
-    q: '¿Los créditos no usados se acumulan?',
-    a: 'Los créditos se renuevan cada ciclo de facturación. Te recomendamos aprovecharlos dentro del mes para sacarles el máximo partido.',
+    q: '¿Los créditos solo funcionan con pegatinas de vinilo normales?',
+    a: 'Puedes usar tus créditos para todo tipo de pegatinas: holográficas, con purpurina, transparentes, cromadas, etc.',
+  },
+  {
+    q: '¿Puedo cancelar en cualquier momento?',
+    a: 'Por supuesto. Puedes cancelar tu membresía Pro en cualquier momento sin cargos adicionales. Tus beneficios finalizarán de inmediato, pero tus créditos seguirán siendo válidos hasta que los uses.',
+  },
+  {
+    q: '¿Cómo funciona el Fast Pass?',
+    a: 'El Pase Rápido es una función que te permite priorizar tu pedido, lo que se traduce en tiempos de entrega más rápidos para todos tus pedidos de pegatinas personalizadas. Los pedidos Pro se imprimen normalmente en 24 horas.',
+  },
+  {
+    q: '¿Qué incluye el soporte exclusivo?',
+    a: 'Los miembros Pro tienen acceso directo a nuestro equipo de soporte por WhatsApp para obtener respuestas más rápidas y asistencia personalizada con sus pedidos y consultas de diseño. ¡Antes o después de realizar su pedido!',
   },
 ]

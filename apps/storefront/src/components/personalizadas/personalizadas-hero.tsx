@@ -6,9 +6,9 @@ import { Link } from '@/i18n/routing'
 
 /**
  * Hero de la página de personalizadas. Mantiene el lenguaje visual del hero de
- * Servicios (fondo carbón, eyebrow amarillo, halos difuminados) pero en una
- * versión MÁS COMPACTA: menos padding vertical, h1 algo menor y sin la franja
- * marquee, para que el configurador quede cerca del viewport.
+ * Servicios (fondo carbón, eyebrow amarillo, halos difuminados) con h1 algo
+ * menor y sin franja marquee. La ALTURA está unificada con los heroes de la
+ * home y de /servicios (min-h 78vh) por petición del cliente.
  */
 export function PersonalizadasHero() {
   return (
@@ -23,7 +23,8 @@ export function PersonalizadasHero() {
         className="pointer-events-none absolute -left-20 -bottom-16 h-[260px] w-[260px] rounded-full bg-rt-yellow/10 blur-3xl"
       />
 
-      <div className="container-page relative flex flex-col items-center py-12 text-center md:py-16">
+      {/* Misma altura (78vh) que el hero de la home y el de /servicios. */}
+      <div className="container-page relative flex min-h-[78vh] flex-col items-center justify-center py-12 text-center md:py-16">
         <Reveal as="up">
           <p className="inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.22em] text-rt-yellow font-[family-name:var(--font-heading)]">
             <Sparkles className="h-3.5 w-3.5" />

@@ -197,7 +197,29 @@
   --animate-marquee-fast: marquee 14s linear infinite;
   --animate-float-slow: floatSlow 9s ease-in-out infinite;
   --animate-tilt: tilt 11s ease-in-out infinite;
+  --animate-accordion-down: accordionDown 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-accordion-up: accordionUp 200ms cubic-bezier(0.65, 0, 0.35, 1);
 
+  @keyframes accordionDown {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+      opacity: 1;
+    }
+  }
+  @keyframes accordionUp {
+    from {
+      height: var(--radix-accordion-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
+  }
   @keyframes marquee {
     from {
       transform: translateX(0);

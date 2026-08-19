@@ -34,3 +34,6 @@ dumps/
 scripts/migration/output/
 scripts/migration/*.json
 !scripts/migration/sample.json
+
+# Artefacto incremental de TypeScript
+*.tsbuildinfo

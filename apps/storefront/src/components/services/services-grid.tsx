@@ -1,76 +1,15 @@
-import { ArrowUpRight, Car, Layers, Lightbulb, Paintbrush2, Sparkles, Type } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { ArrowUpRight, Car } from 'lucide-react'
 
 import { Reveal } from '@/components/services/reveal'
 import { Link } from '@/i18n/routing'
+import { resolveIcon, type ServiceItem } from '@/lib/site-content'
 
-interface Service {
-  key: string
-  number: string
-  icon: LucideIcon
-  title: string
-  tagline: string
-  description: string
-  bullets: string[]
-  /** Card "destacada" → fondo carbón, no white. */
-  featured?: boolean
+interface ServicesGridProps {
+  /** Tarjetas de servicio (backend, con respaldo estático). */
+  items: ServiceItem[]
 }
 
-const SERVICES: Service[] = [
-  {
-    key: 'car-wrapping',
-    number: '01',
-    icon: Layers,
-    title: 'Car Wrapping',
-    tagline: 'Superficial · Full Wrap',
-    description:
-      'Cambia el color, textura o acabado de tu coche con vinilo de calidad cast. Aplicamos en zonas exteriores o desmontaje completo para un Full Wrap impecable.',
-    bullets: ['Materiales 3M / Hexis / KPMF', 'Garantía 2 años', 'Desmontaje incluido'],
-    featured: true,
-  },
-  {
-    key: 'car-design',
-    number: '02',
-    icon: Paintbrush2,
-    title: 'Car Design',
-    tagline: 'Diseño exterior a medida',
-    description:
-      'Vinilados parciales pensados para personalizar capó, techo, retrovisores o stripes laterales. Ideal si buscas un toque único sin recubrir el coche entero.',
-    bullets: ['Diseños propios o brief', 'Plantillas digitales', 'Acabados mate / brillo / satin'],
-  },
-  {
-    key: 'chrome-delete',
-    number: '03',
-    icon: Sparkles,
-    title: 'Chrome Delete',
-    tagline: 'Eliminar cromados',
-    description:
-      'Cubrimos todas las molduras y embellecedores cromados de tu coche con vinilo negro o de color. Look agresivo, limpio y reversible en cualquier momento.',
-    bullets: ['Marcos ventana / parrilla', 'Negro brillo o mate', 'Sin pegamentos residuales'],
-  },
-  {
-    key: 'ahumado-faros',
-    number: '04',
-    icon: Lightbulb,
-    title: 'Ahumado de faros',
-    tagline: 'Faros + protección',
-    description:
-      'Vinilos translúcidos homologables para oscurecer faros y pilotos sin perder visibilidad. También aplicamos láminas de protección PPF en zonas vulnerables.',
-    bullets: ['Tonos 20% · 35% · 50%', 'Protección antigrava', 'Homologable ITV'],
-  },
-  {
-    key: 'rotulacion',
-    number: '05',
-    icon: Type,
-    title: 'Rotulación de vehículos',
-    tagline: 'Flotas y branding',
-    description:
-      'Diseñamos y aplicamos rotulaciones para furgonetas, coches comerciales y flotas. Branding completo con tu logo, copy y datos de contacto sobre vinilo de larga duración.',
-    bullets: ['Diseño incluido', 'Aplicación en taller', 'Facturación a empresa'],
-  },
-]
-
-export function ServicesGrid() {
+export function ServicesGrid({ items }: ServicesGridProps) {
   return (
     <section id="servicios" className="bg-rt-white-2 py-20 md:py-28">
       <div className="container-page">
@@ -87,14 +26,15 @@ export function ServicesGrid() {
         </Reveal>
 
         <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {SERVICES.map((service, i) => (
-            <Reveal key={service.key} as="up" delay={i * 80} className="h-full">
-              <ServiceCard service={service} />
+          {items.map((service, i) => (
+            <Reveal key={service.id} as="up" delay={i * 80} className="h-full">
+              {/* El número 01/02/03… se deriva de la posición en la lista. */}
+              <ServiceCard service={service} number={String(i + 1).padStart(2, '0')} />
             </Reveal>
           ))}
 
           {/* Card final · CTA */}
-          <Reveal as="up" delay={SERVICES.length * 80} className="h-full">
+          <Reveal as="up" delay={items.length * 80} className="h-full">
             <article className="group relative flex h-full flex-col justify-between overflow-hidden rounded-[24px] border border-rt-black-3 bg-rt-black p-7 text-rt-white transition-all duration-[320ms] ease-[var(--ease-out-rt)] hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]">
               <span
                 aria-hidden
@@ -129,13 +69,13 @@ export function ServicesGrid() {
   )
 }
 
-function ServiceCard({ service }: { service: Service }) {
-  const Icon = service.icon
-  const isFeatured = !!service.featured
+function ServiceCard({ service, number }: { service: ServiceItem; number: string }) {
+  const Icon = resolveIcon(service.icon)
+  const isFeatured = service.featured
 
   return (
     <article
-      id={service.key}
+      id={service.anchor}
       className={`group relative flex h-full scroll-mt-28 flex-col justify-between overflow-hidden rounded-[24px] border p-7 transition-all duration-[320ms] ease-[var(--ease-out-rt)] hover:-translate-y-1 ${
         isFeatured
           ? 'border-rt-black-3 bg-rt-black text-rt-white hover:shadow-[var(--shadow-lg)]'
@@ -166,7 +106,7 @@ function ServiceCard({ service }: { service: Service }) {
               isFeatured ? 'text-rt-white/15' : 'text-rt-ink-100'
             }`}
           >
-            {service.number}
+            {number}
           </span>
         </div>
 
@@ -175,7 +115,7 @@ function ServiceCard({ service }: { service: Service }) {
             isFeatured ? 'text-rt-yellow' : 'text-rt-yellow-deep'
           }`}
         >
-          {service.tagline}
+          {service.eyebrow}
         </p>
         <h3 className="mt-2 font-[family-name:var(--font-heading)] text-[26px] font-bold leading-[1.1]">
           {service.title}
@@ -207,15 +147,46 @@ function ServiceCard({ service }: { service: Service }) {
         </ul>
       </div>
 
-      <Link
-        href="/contacto"
+      <ServiceCta
+        href={service.ctaHref}
         className={`relative mt-7 inline-flex items-center gap-2 self-start text-[12px] font-bold uppercase tracking-[0.18em] font-[family-name:var(--font-heading)] transition-all hover:gap-3 ${
           isFeatured ? 'text-rt-yellow' : 'text-rt-black'
         }`}
       >
-        Solicitar presupuesto · Gratis
+        {service.ctaLabel}
         <ArrowUpRight className="h-4 w-4" />
-      </Link>
+      </ServiceCta>
     </article>
+  )
+}
+
+/**
+ * CTA de la tarjeta. Usa el `Link` con locale para rutas internas; si desde el
+ * admin se guarda una URL externa (o un mailto/tel) cae a un `<a>` normal para
+ * que no se le prefije el idioma.
+ */
+function ServiceCta({
+  href,
+  className,
+  children,
+}: {
+  href: string
+  className: string
+  children: React.ReactNode
+}) {
+  const isInternal = href.startsWith('/') || href.startsWith('#')
+
+  if (!isInternal) {
+    return (
+      <a href={href} className={className} target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    )
+  }
+
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
   )
 }

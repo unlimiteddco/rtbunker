@@ -48,10 +48,21 @@ export default async function ContactPage({ params }: ContactPageProps) {
             </a>
           </InfoRow>
 
+          <InfoRow icon={Instagram} title="Instagram">
+            <a
+              href="https://instagram.com/rtbunker_"
+              target="_blank"
+              rel="noopener"
+              className="font-semibold text-rt-black hover:text-rt-yellow-deep"
+            >
+              @rtbunker_
+            </a>
+          </InfoRow>
+
           <InfoRow icon={MapPin} title="Dirección">
-            Calle Neto, nave 15
+            Calle Aneto 15, Nave A6
             <br />
-            50410 Cuarte de Huerva {/* TODO confirmar CP y ciudad */}
+            50410 Cuarte de Huerva
             <br />
             Zaragoza, España
           </InfoRow>
@@ -60,18 +71,6 @@ export default async function ContactPage({ params }: ContactPageProps) {
             Lunes a viernes
             <br />
             9:00 – 18:00 h
-          </InfoRow>
-
-          <InfoRow icon={Instagram} title="Instagram">
-            {/* TODO Nikita: handle real */}
-            <a
-              href="https://instagram.com/rtbunker_oficial"
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold text-rt-black hover:text-rt-yellow-deep"
-            >
-              @rtbunker_oficial
-            </a>
           </InfoRow>
 
           <div className="rounded-[16px] border border-rt-ink-100 bg-rt-white-2 p-4">

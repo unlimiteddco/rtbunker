@@ -10,6 +10,7 @@ import { ServicesProcess } from '@/components/services/services-process'
 import { ServicesWarranty } from '@/components/services/services-warranty'
 import { ServicesWhy } from '@/components/services/services-why'
 import { getPortfolioWorks } from '@/lib/portfolio'
+import { getProcessSteps, getServiceItems } from '@/lib/site-content'
 
 export const revalidate = 3600
 
@@ -34,14 +35,18 @@ export default async function ServicesPage({ params }: ServicesPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  // Portafolio desde el backend (resiliente: cae al respaldo estático si falla).
-  const works = await getPortfolioWorks()
+  // Contenido desde el backend (resiliente: cae al respaldo estático si falla).
+  const [works, serviceItems, processSteps] = await Promise.all([
+    getPortfolioWorks(),
+    getServiceItems(),
+    getProcessSteps(),
+  ])
 
   return (
     <>
       <ServicesHero />
-      <ServicesGrid />
-      <ServicesProcess />
+      <ServicesGrid items={serviceItems} />
+      <ServicesProcess steps={processSteps} />
       <ServicesGallery works={works} />
       <ServicesWhy />
       <ServicesWarranty />

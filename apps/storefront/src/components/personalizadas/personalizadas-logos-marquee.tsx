@@ -1,22 +1,11 @@
 'use client'
 
 import { Reveal } from '@/components/services/reveal'
+import { BRAND_LOGOS } from '@/lib/brand-logos'
 
-// TODO Nikita: sustituir por logos reales (PNG transparentes) de las marcas
-// para las que hemos impreso, cuando los pases. Por ahora son placeholders de
-// texto en tipografía display.
-const LOGOS = [
-  'BMW',
-  'Audi',
-  'Porsche',
-  'Mercedes',
-  'Volkswagen',
-  'Seat',
-  'Cupra',
-  'Toyota',
-  'Nissan',
-  'Subaru',
-] as const
+// Lista compartida con el marquee del hero de Servicios (ver lib/brand-logos).
+// Por ahora son placeholders de texto en tipografía display.
+const LOGOS = BRAND_LOGOS
 
 /**
  * Marquee horizontal infinito de "logos" de marcas para las que ya hemos
