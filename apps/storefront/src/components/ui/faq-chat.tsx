@@ -29,11 +29,17 @@ interface FaqChatProps {
  * avatar a la izquierda y, al abrirla, la respuesta aparece como una segunda
  * burbuja del negocio, indentada y con fondo de marca.
  *
- * Accesibilidad: acordeón Radix (un panel abierto a la vez, colapsable), con
- * navegación por teclado y aria gestionados por la primitiva.
+ * Todas las respuestas salen ABIERTAS de entrada (se lee como una conversación
+ * completa); el usuario puede plegar las que no le interesen.
+ *
+ * Accesibilidad: acordeón Radix (múltiple), con navegación por teclado y aria
+ * gestionados por la primitiva.
  */
 export function FaqChat({ items, title, eyebrow, className }: FaqChatProps) {
   if (items.length === 0) return null
+
+  // Todas abiertas por defecto.
+  const allValues = items.map((_, i) => `faq-chat-${i}`)
 
   return (
     <div className={cn('mx-auto w-full max-w-3xl', className)}>
@@ -44,7 +50,7 @@ export function FaqChat({ items, title, eyebrow, className }: FaqChatProps) {
         </header>
       ) : null}
 
-      <Accordion type="single" collapsible className="flex flex-col gap-3">
+      <Accordion type="multiple" defaultValue={allValues} className="flex flex-col gap-3">
         {items.map((item, i) => (
           <AccordionItem
             key={item.q}

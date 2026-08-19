@@ -1,14 +1,14 @@
 'use client'
 
 import { CircleDot, Files, Sparkle, Sparkles, Sticker } from 'lucide-react'
-import { useEffect, useState, type ComponentType } from 'react'
+import { useEffect, useRef, useState, type ComponentType } from 'react'
 
 import { Reveal } from '@/components/services/reveal'
 import { FaqChat, type FaqChatItem } from '@/components/ui/faq-chat'
 import { cn } from '@/lib/cn'
 
 import { PersonalizadasCompact } from './personalizadas-compact'
-import { PRODUCT_TYPES, type ProductTypeId } from './product-types'
+import { DEFAULT_PRODUCT_TYPE, PRODUCT_TYPES, type ProductTypeId } from './product-types'
 
 interface PersonalizadasProductPickerProps {
   /** Créditos disponibles del socio (0 si no es socio o no tiene). */
@@ -65,10 +65,19 @@ const TYPE_ICONS: Record<ProductTypeId, ComponentType<{ className?: string }>> =
 export function PersonalizadasProductPicker({
   availableCredits = 0,
 }: PersonalizadasProductPickerProps) {
-  const [selected, setSelected] = useState<ProductTypeId | null>(null)
+  // "Vinilos" viene preseleccionado: al entrar ya se ve el configurador.
+  const [selected, setSelected] = useState<ProductTypeId | null>(DEFAULT_PRODUCT_TYPE)
+
+  // El scroll solo debe saltar cuando el usuario CAMBIA de tipo, nunca al
+  // cargar la página (si no, entrar en /personalizadas bajaría solo).
+  const isFirstRender = useRef(true)
 
   // Scroll suave hacia el configurador cuando se selecciona (o cambia) un tipo.
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
     if (selected === null) return
     document
       .getElementById('configurador')
@@ -159,12 +168,6 @@ export function PersonalizadasProductPicker({
           })}
         </div>
 
-        {/* ─── Texto guía antes de seleccionar ────────────────── */}
-        {selected === null ? (
-          <p className="mt-10 text-center text-[14px] font-medium text-rt-ink-500">
-            Elige un tipo de producto para empezar a diseñar.
-          </p>
-        ) : null}
       </div>
 
       {/* ─── Configurador embebido (solo tras seleccionar) ────── */}
