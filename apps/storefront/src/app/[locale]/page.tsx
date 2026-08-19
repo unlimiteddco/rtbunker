@@ -31,18 +31,19 @@ export default async function HomePage({ params }: HomeProps) {
 
   return (
     <>
+      {/* Orden de la home. Los fondos ALTERNAN carbón / claro para que nunca
+          se peguen dos secciones del mismo color:
+          hero(negro) · categorías(claro) · a medida(negro) · showcase(claro)
+          · garantías(negro) · destacados(claro) · sobre nosotros(negro)
+          · por qué(claro-2) · reseñas(claro) · faq(claro-2) */}
       <Hero />
       <CategoryGrid locale={locale} />
       <CustomStickersCta />
-      <TrustBadges />
-      {/* ScrollShowcase cierra con "El taller donde nacen las RT Bunker": el
-          banner "Sobre nosotros" va justo aquí, pegado a esa sección. */}
       <ScrollShowcase />
-      <AboutBanner />
-      <WhyUs />
+      <TrustBadges />
 
       {products.length > 0 ? (
-        <section className="bg-rt-white-2 py-20 md:py-24">
+        <section className="bg-rt-white py-20 md:py-24">
           <div className="container-page">
             <header className="mb-8 flex items-end justify-between">
               <h2 className="rt-h2">Destacados</h2>
@@ -61,9 +62,9 @@ export default async function HomePage({ params }: HomeProps) {
           </div>
         </section>
       ) : (
-        <section className="bg-rt-white-2 py-20">
+        <section className="bg-rt-white py-20">
           <div className="container-page">
-            <div className="rounded-[20px] border border-dashed border-rt-ink-100 bg-rt-white p-16 text-center">
+            <div className="rounded-[20px] border border-dashed border-rt-ink-100 bg-rt-white-2 p-16 text-center">
               <p className="text-rt-ink-500">
                 Aún no hay productos publicados.{' '}
                 <a
@@ -80,6 +81,8 @@ export default async function HomePage({ params }: HomeProps) {
         </section>
       )}
 
+      <AboutBanner />
+      <WhyUs />
       <HomeTestimonials reviews={featuredReviews} />
       <HomeFaq />
     </>

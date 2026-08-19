@@ -52,15 +52,18 @@ export async function CategoryGrid({ locale }: CategoryGridProps) {
     ]
   })
 
-  const categories: CategoryTile[] =
-    curated.length > 0
-      ? curated.slice(0, MAX_TILES)
-      : (await listCategories()).slice(0, MAX_TILES).map((c) => ({
-          id: c.id,
-          name: c.name,
-          handle: c.handle,
-          presetImage: null,
-        }))
+  // Las destacadas mandan y van primero. Si son menos de MAX_TILES (en el
+  // admin puede haber solo unas pocas fijadas), completamos con las siguientes
+  // categorías reales para que la rejilla salga siempre con sus dos filas.
+  const pinned = curated.slice(0, MAX_TILES)
+  const pool = allCategories.length > 0 ? allCategories : await listCategories()
+  const alreadyUsed = new Set(pinned.map((t) => t.handle))
+  const filler: CategoryTile[] = pool
+    .filter((c) => !alreadyUsed.has(c.handle))
+    .slice(0, MAX_TILES - pinned.length)
+    .map((c) => ({ id: c.id, name: c.name, handle: c.handle, presetImage: null }))
+
+  const categories: CategoryTile[] = [...pinned, ...filler]
 
   if (categories.length === 0) return null
 

@@ -59,7 +59,7 @@ export function CustomStickersCta() {
             </p>
 
             <h2 className="mt-4 font-[family-name:var(--font-display)] text-[clamp(30px,4.8vw,58px)] uppercase leading-[1.02] tracking-[-0.02em] text-balance">
-              Tu diseño,
+              Tu idea,
               <br />
               <span className="text-rt-yellow">en vinilo premium</span>
             </h2>
