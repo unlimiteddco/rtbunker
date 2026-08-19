@@ -1,10 +1,11 @@
-import { Crown, Search } from 'lucide-react'
+import { Crown } from 'lucide-react'
 import Image from 'next/image'
 import { getTranslations } from 'next-intl/server'
 
 import { CartButton } from '@/components/cart/cart-button'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { ShopMegaMenu } from '@/components/layout/shop-mega-menu'
+import { MobileSearchButton } from '@/components/search/mobile-search-button'
 import { SearchBar } from '@/components/search/search-bar'
 import { Link } from '@/i18n/routing'
 import { getCart } from '@/lib/cart'
@@ -50,18 +51,23 @@ export async function Header({ locale }: HeaderProps) {
         </div>
 
         {/* ─── Centro: logo ──────────────────────────────────── */}
+        {/* `py-3` le da al enlace ~48 px de alto real: con solo la altura del
+            logo (24 px) el área para pulsar se quedaba muy corta en móvil y
+            costaba acertar para volver al inicio. */}
         <Link
           href="/"
           aria-label="RT Bunker · inicio"
-          className="flex items-center justify-center"
+          className="flex items-center justify-center py-3"
         >
+          {/* width/height al tamaño en el que se ve (x2 para pantallas retina).
+              Con las medidas del archivo original (1166 px) Next servía una
+              imagen de 3840 px para pintarla a 150: tardaba en aparecer. */}
           <Image
             src="/logo-white.png"
             alt="RT Bunker"
-            width={1166}
-            height={188}
+            width={350}
+            height={56}
             priority
-            sizes="(max-width: 768px) 120px, 160px"
             className="h-6 w-auto md:h-7"
           />
         </Link>
@@ -79,13 +85,10 @@ export async function Header({ locale }: HeaderProps) {
           <div className="hidden xl:block xl:w-56">
             <SearchBar />
           </div>
-          <Link
-            href="/tienda"
-            aria-label={t('search')}
+          <MobileSearchButton
+            label={t('search')}
             className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-rt-white transition-colors hover:bg-rt-black-2 xl:hidden"
-          >
-            <Search className="h-4 w-4" />
-          </Link>
+          />
 
           <Link
             href="/cuenta"

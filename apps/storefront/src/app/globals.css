@@ -266,6 +266,15 @@
     font-size: 15px;
     line-height: 1.55;
   }
+  /* Nada debe poder desplazar la página en horizontal. Lo provocaban las
+     animaciones de entrada laterales, que arrancan 32 px desplazadas y en
+     móvil se salían de la pantalla.
+     `clip` en lugar de `hidden`: hidden crearía un contenedor de scroll y
+     rompería los `position: sticky` (header y carrusel de la home). */
+  html,
+  body {
+    overflow-x: clip;
+  }
   ::selection {
     background-color: var(--rt-yellow);
     color: var(--rt-black);
@@ -307,17 +316,20 @@
     line-height: 1.02;
     letter-spacing: var(--rt-tracking-tight);
   }
+  /* Escalan con la pantalla igual que .rt-h1: con un tamaño fijo, en móvil
+     estos titulares salían mucho más grandes que los de las secciones
+     oscuras (que ya usaban clamp) y el conjunto no casaba. */
   .rt-h2 {
     font-family: var(--font-heading);
     font-weight: 800;
-    font-size: 2.75rem;
+    font-size: clamp(1.875rem, 4.6vw, 2.75rem);
     line-height: 1.02;
     letter-spacing: var(--rt-tracking-tight);
   }
   .rt-h3 {
     font-family: var(--font-heading);
     font-weight: 700;
-    font-size: 2rem;
+    font-size: clamp(1.375rem, 3.2vw, 2rem);
     line-height: 1.18;
   }
   .rt-h4 {

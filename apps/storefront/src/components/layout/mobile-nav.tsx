@@ -57,7 +57,13 @@ export function MobileNav({ roots }: MobileNavProps) {
         </button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="flex w-[88%] max-w-sm flex-col gap-0 p-0">
+      {/* Sin auto-foco: por defecto el panel enfoca su primer elemento, que es
+          el buscador, y al abrir el menú saltaba el teclado del móvil. */}
+      <SheetContent
+        side="left"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="flex w-[88%] max-w-sm flex-col gap-0 p-0"
+      >
         {/* Cabecera de marca */}
         <SheetHeader className="shrink-0 space-y-0 border-b border-rt-ink-100 px-5 py-4">
           <SheetTitle className="font-[family-name:var(--font-display)] text-[22px] uppercase leading-none tracking-[-0.01em] text-rt-black">
