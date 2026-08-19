@@ -47,6 +47,10 @@ COPY packages ./packages
 COPY apps/storefront ./apps/storefront
 
 WORKDIR /app/apps/storefront
+# Los runners de GitHub tienen 7 GB y Node se queda por defecto en un heap
+# bastante menor: al crecer el número de páginas, `next build` se quedaba sin
+# memoria y el job moría (la imagen del storefront dejó de publicarse).
+ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN npm run build
 
 # ─── runtime ────────────────────────────────────────────────────────
