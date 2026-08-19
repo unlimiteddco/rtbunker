@@ -52,16 +52,15 @@ export default async function NosotrosPage({
           aria-hidden
           className="absolute inset-0 bg-gradient-to-t from-rt-black via-rt-black/75 to-rt-black/30"
         />
-        <div className="container-page relative py-24 md:py-36">
+        <div className="container-page relative flex min-h-[380px] flex-col justify-center py-16 text-center md:min-h-[480px] md:py-24">
           <Reveal as="up">
             <p className="rt-eyebrow text-rt-yellow">Quiénes somos · desde 2022</p>
-            <h1 className="mt-4 max-w-[14ch] font-[family-name:var(--font-display)] text-[clamp(40px,8vw,92px)] uppercase leading-[0.92] tracking-[-0.02em]">
+            <h1 className="mx-auto mt-4 max-w-[14ch] font-[family-name:var(--font-display)] text-[clamp(36px,7vw,80px)] uppercase leading-[0.95] tracking-[-0.02em]">
               Donde nace la <span className="text-rt-yellow">personalización</span>
             </h1>
-            <p className="mt-6 max-w-[560px] text-[17px] leading-[1.6] text-rt-ink-300">
-              RT Bunker no es solo un negocio: es un proyecto nacido de la pasión por los coches y
-              la búsqueda constante de la exclusividad. Cada vehículo es único y merece un toque
-              especial.
+            <p className="mx-auto mt-5 max-w-[560px] text-[16px] leading-[1.6] text-rt-ink-300">
+              Un proyecto nacido de la pasión por los coches y la búsqueda constante de la
+              exclusividad. Cada vehículo es único y merece un toque especial.
             </p>
           </Reveal>
         </div>

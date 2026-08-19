@@ -47,7 +47,9 @@ export default async function PlanesPage({
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-rt-yellow/20 blur-3xl"
         />
-        <div className="container-page relative py-16 text-center md:py-24">
+        {/* Altura de referencia de todas las cabeceras oscuras (la home es la
+            única excepción): min-h 380 en móvil / 480 en escritorio. */}
+        <div className="container-page relative flex min-h-[380px] flex-col justify-center py-16 text-center md:min-h-[480px] md:py-24">
           <Reveal as="up">
             <p className="rt-eyebrow inline-flex items-center gap-2 text-rt-yellow">
               <Crown className="h-4 w-4" /> RT Bunker Club

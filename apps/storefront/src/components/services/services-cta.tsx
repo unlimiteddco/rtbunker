@@ -23,9 +23,9 @@ const INFO_ITEMS: InfoItem[] = [
   {
     icon: Phone,
     label: 'Teléfono',
-    primary: '+34 600 00 00 00',
+    primary: '+34 624 69 04 89',
     secondary: 'L-V · 9 a 18 h',
-    href: 'tel:+34600000000',
+    href: 'tel:+34624690489',
   },
   {
     icon: Clock,
@@ -86,7 +86,7 @@ export function ServicesCta() {
               </Link>
             </Button>
             <Button asChild variant="ghostInv" size="lg">
-              <a href="https://wa.me/34600000000" target="_blank" rel="noreferrer noopener">
+              <a href="https://wa.me/34624690489" target="_blank" rel="noreferrer noopener">
                 <MessageCircle className="h-4 w-4" />
                 WhatsApp directo
               </a>
