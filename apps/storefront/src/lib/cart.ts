@@ -1,5 +1,6 @@
 'use server'
 
+import type { HttpTypes } from '@medusajs/types'
 import { cookies } from 'next/headers'
 import { revalidateTag } from 'next/cache'
 
@@ -107,13 +108,19 @@ export async function addLineItem(input: {
   countryCode: string
   variantId: string
   quantity: number
+  /** Metadata del line item (p.ej. `{ custom_text: '@usuario' }`). Medusa solo
+   *  fusiona con una línea existente del mismo variant si la metadata coincide;
+   *  si no, crea una línea nueva. */
+  metadata?: Record<string, unknown>
 }) {
+  const payload: HttpTypes.StoreAddCartLineItem = {
+    variant_id: input.variantId,
+    quantity: input.quantity,
+    ...(input.metadata ? { metadata: input.metadata } : {}),
+  }
   try {
     const cart = await getOrCreateCart(input.countryCode)
-    const { cart: updated } = await sdk.store.cart.createLineItem(cart.id, {
-      variant_id: input.variantId,
-      quantity: input.quantity,
-    })
+    const { cart: updated } = await sdk.store.cart.createLineItem(cart.id, payload)
     revalidateTag(`cart:${updated.id}`)
     return updated
   } catch (err) {
@@ -122,10 +129,7 @@ export async function addLineItem(input: {
     if (isRecoverableCartError(err)) {
       await resetCartCookie()
       const fresh = await getOrCreateCart(input.countryCode)
-      const { cart: updated } = await sdk.store.cart.createLineItem(fresh.id, {
-        variant_id: input.variantId,
-        quantity: input.quantity,
-      })
+      const { cart: updated } = await sdk.store.cart.createLineItem(fresh.id, payload)
       revalidateTag(`cart:${updated.id}`)
       return updated
     }

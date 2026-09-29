@@ -4,6 +4,7 @@ import type { HttpTypes } from '@medusajs/types'
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
+import { CustomTextLine } from '@/components/cart/custom-text-line'
 import { PriceTag } from '@/components/commerce/price-tag'
 import {
   CustomLineItemMeta,
@@ -88,6 +89,7 @@ export function OrderSummary({ cart, locale, collapsibleOnMobile = true }: Order
                       {formatVariantTitle(item.variant_title)}
                     </p>
                   ) : null}
+                  <CustomTextLine metadata={item.metadata} className="mt-0.5" />
                 </div>
                 <p className="text-sm font-medium tabular-nums">
                   {formatMoney((item.unit_price ?? 0) * item.quantity, currency)}

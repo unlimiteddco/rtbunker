@@ -144,13 +144,22 @@ Host interno para el backend/storefront: `http://<host-interno-meili>:7700`.
 
   # PayPal: déjalo vacío (checkout solo Stripe hasta tener credenciales)
   PAYPAL_CLIENT_ID=
+
+  # Transferencia bancaria (pago manual). Sin IBAN → no se ofrece en el checkout.
+  BANK_TRANSFER_HOLDER=RT Bunker S.L.
+  BANK_TRANSFER_IBAN=ES00 0000 0000 0000 0000 0000
+  BANK_TRANSFER_BANK=           # opcional
+  BANK_TRANSFER_BIC=            # opcional
   ```
 - **Domain**: añade `api.pruebas.rtbunker.com` → **Container Port 9000**, HTTPS (Let's Encrypt ON).
 - **NO despliegues todavía** si vas a importar el dump (ver paso 7). Si ya lo
   desplegaste, no pasa nada: lo arreglamos en el paso 7.
 
 > El Dockerfile del backend ejecuta `medusa db:migrate` automáticamente en cada
-> arranque, así que las migraciones se aplican solas.
+> arranque, así que las migraciones se aplican solas. Después ejecuta
+> `src/scripts/enable-manual-payment` (idempotente), que añade el proveedor
+> manual `pp_system_default` a todas las regiones sin quitar los que ya tengan;
+> si falla, solo lo registra en el log y el servidor arranca igual.
 
 ## 6. Storefront (Next.js)
 
@@ -268,3 +277,11 @@ Webhook). Así cada push a `main` redeploya solo.
 - **PayPal**: vacío en staging. Cuando haya credenciales, rellena `PAYPAL_*`
   (backend) y `NEXT_PUBLIC_PAYPAL_CLIENT_ID` (storefront), redeploya, y habilita
   el provider `pp_paypal_paypal` en las regiones desde el admin.
+- **Transferencia bancaria**: el checkout muestra solo los métodos reales de la
+  región: Tarjeta (`pp_stripe_*`), PayPal (`pp_paypal_paypal` + client id) y
+  Transferencia (`pp_system_default` + `BANK_TRANSFER_IBAN`). Los datos
+  bancarios salen de las env `BANK_TRANSFER_*` del backend (checkout, página de
+  éxito y email). El pedido entra con el pago **autorizado, no capturado** y
+  `metadata.payment_method = bank_transfer`. Cuando llegue el ingreso (concepto
+  `Pedido #<nº>`): Admin → Pedidos → el pedido → sección **Pago** → **Capturar
+  pago**. Hasta entonces, no se prepara.

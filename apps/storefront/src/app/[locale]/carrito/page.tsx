@@ -1,6 +1,7 @@
 import { ShoppingBag, Trash2 } from 'lucide-react'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 
+import { CustomTextLine } from '@/components/cart/custom-text-line'
 import { EmptyState } from '@/components/commerce/empty-state'
 import {
   CustomLineItemMeta,
@@ -94,6 +95,7 @@ export default async function CartPage({ params }: CartPageProps) {
                       {formatVariantTitle(item.variant_title)}
                     </p>
                   ) : null}
+                  <CustomTextLine metadata={item.metadata} className="mt-0.5 text-sm" />
                   <div className="mt-auto flex items-end gap-3 pt-3">
                     <form action={updateLineItemAction} className="flex items-center gap-2">
                       <input type="hidden" name="cart_id" value={cart.id} />

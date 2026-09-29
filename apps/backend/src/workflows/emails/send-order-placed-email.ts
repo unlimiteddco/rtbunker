@@ -2,7 +2,23 @@ import { createWorkflow, WorkflowResponse, createStep, StepResponse } from '@med
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import type { INotificationModuleService } from '@medusajs/framework/types'
 
+import { BANK_TRANSFER_METHOD, getBankTransferDetails } from '../../lib/bank-transfer'
 import { orderPlacedTemplate, orderPlacedAdminTemplate } from './templates'
+
+type OrderItemRow = {
+  title: string
+  quantity: number
+  unit_price?: number | null
+  thumbnail?: string | null
+  variant_title?: string | null
+  metadata?: Record<string, unknown> | null
+}
+
+/** Texto personalizado del line item (`metadata.custom_text`), si existe. */
+const customTextOf = (i: OrderItemRow): string | null => {
+  const v = i.metadata?.custom_text
+  return typeof v === 'string' && v.trim() ? v.trim() : null
+}
 
 export interface SendOrderPlacedEmailInput {
   order_id: string
@@ -26,11 +42,14 @@ const sendOrderPlacedStep = createStep(
         'shipping_total',
         'tax_total',
         'discount_total',
+        'metadata',
+        'cart.metadata',
         'items.title',
         'items.quantity',
         'items.unit_price',
         'items.thumbnail',
         'items.variant_title',
+        'items.metadata',
         'shipping_address.first_name',
         'shipping_address.last_name',
         'shipping_address.address_1',
@@ -46,6 +65,19 @@ const sendOrderPlacedStep = createStep(
 
     const sa = order.shipping_address
     const customerName = [sa?.first_name, sa?.last_name].filter(Boolean).join(' ') || null
+
+    // Pago por transferencia: el storefront guarda `payment_method` en la
+    // metadata del carrito antes de completarlo. Medusa 2.4 no la copia al
+    // pedido (lo hace el subscriber order-placed-payment-method, en paralelo),
+    // así que miramos ambas para no depender del orden de los subscribers.
+    const paymentMethodOf = (m: unknown) =>
+      (m as Record<string, unknown> | null | undefined)?.payment_method
+    const isBankTransfer =
+      paymentMethodOf(order.metadata) === BANK_TRANSFER_METHOD ||
+      paymentMethodOf((order as { cart?: { metadata?: unknown } | null }).cart?.metadata) ===
+        BANK_TRANSFER_METHOD
+    const bank = getBankTransferDetails()
+    const items = (order.items ?? []) as OrderItemRow[]
 
     const tpl = orderPlacedTemplate({
       display_id: order.display_id,
@@ -67,21 +99,17 @@ const sendOrderPlacedStep = createStep(
             country: sa.country_code ? String(sa.country_code).toUpperCase() : null,
           }
         : null,
-      items: (order.items ?? []).map(
-        (i: {
-          title: string
-          quantity: number
-          unit_price?: number | null
-          thumbnail?: string | null
-          variant_title?: string | null
-        }) => ({
-          title: i.title,
-          quantity: i.quantity,
-          unit_price: i.unit_price,
-          thumbnail: i.thumbnail,
-          variant_title: i.variant_title,
-        }),
-      ),
+      items: items.map((i) => ({
+        title: i.title,
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+        thumbnail: i.thumbnail,
+        variant_title: i.variant_title,
+        custom_text: customTextOf(i),
+      })),
+      bank_transfer: isBankTransfer
+        ? { holder: bank.holder, iban: bank.iban, bank: bank.bank, bic: bank.bic }
+        : null,
     })
 
     const result = await notification.createNotifications({
@@ -101,19 +129,14 @@ const sendOrderPlacedStep = createStep(
         total: order.total,
         currency_code: order.currency_code,
         admin_url: `${process.env.MEDUSA_BACKEND_URL ?? ''}/app/orders/${order.id}`,
-        items: (order.items ?? []).map(
-          (i: {
-            title: string
-            quantity: number
-            unit_price?: number | null
-            variant_title?: string | null
-          }) => ({
-            title: i.title,
-            quantity: i.quantity,
-            unit_price: i.unit_price,
-            variant_title: i.variant_title,
-          }),
-        ),
+        is_bank_transfer: isBankTransfer,
+        items: items.map((i) => ({
+          title: i.title,
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+          variant_title: i.variant_title,
+          custom_text: customTextOf(i),
+        })),
       })
 
       // Aislado: un fallo del aviso interno NO debe romper el step (el email

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useState, useTransition } from 'react'
 
 import { closeCartDrawer, useCartDrawerOpen } from '@/components/cart/cart-store'
+import { CustomTextLine } from '@/components/cart/custom-text-line'
 import { EmptyState } from '@/components/commerce/empty-state'
 import {
   CustomLineItemMeta,
@@ -126,6 +127,7 @@ export function MiniCartDrawer({ locale }: { locale: string }) {
                         {formatVariantTitle(item.variant_title)}
                       </p>
                     ) : null}
+                    <CustomTextLine metadata={item.metadata} className="mt-0.5" />
                     <div className="mt-auto flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Cantidad: {item.quantity}</span>
                       <button

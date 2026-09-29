@@ -9,10 +9,15 @@ import { toast } from 'sonner'
 import { addToCartAction } from '@/app/actions/cart'
 import { openCartDrawer } from '@/components/cart/cart-store'
 import { QuantitySelector } from '@/components/commerce/quantity-selector'
+import {
+  CustomTextField,
+  type CustomTextPreviewStyle,
+} from '@/components/product/custom-text-field'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
+import { CUSTOM_TEXT_KEY, getCustomTextConfig, normalizeCustomText } from '@/lib/custom-text'
 import { formatMoney } from '@/lib/format'
 
 interface VariantSelectorProps {
@@ -59,8 +64,7 @@ const STYLE_MAP: Record<string, StyleEntry> = {
     type: 'finish',
   },
   'cobre/bronce': {
-    background:
-      'linear-gradient(135deg, #c97f4a 0%, #e0a878 30%, #8e4a26 65%, #c97f4a 100%)',
+    background: 'linear-gradient(135deg, #c97f4a 0%, #e0a878 30%, #8e4a26 65%, #c97f4a 100%)',
     type: 'finish',
   },
   'amarillo fluor': {
@@ -130,6 +134,17 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
   const [pending, startTransition] = useTransition()
   const [quantity, setQuantity] = useState(1)
 
+  // Texto personalizado (p.ej. @usuario de Instagram). Se activa por producto
+  // desde el admin → product.metadata.custom_text_*.
+  const customTextConfig = useMemo(() => getCustomTextConfig(product.metadata), [product.metadata])
+  const [customText, setCustomText] = useState('')
+  const [customTextTouched, setCustomTextTouched] = useState(false)
+  const normalizedCustomText = customTextConfig
+    ? normalizeCustomText(customText, customTextConfig.max)
+    : ''
+  const customTextMissing =
+    !!customTextConfig && customTextConfig.required && normalizedCustomText.length === 0
+
   const [selected, setSelected] = useState<Record<string, string>>(() => {
     if (variants.length === 1) {
       return Object.fromEntries(
@@ -182,22 +197,52 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
   const showAsFrom = !matchedVariant
   const localeStr = `${countryCode}-${countryCode.toUpperCase()}`
 
+  // Color elegido (opción "Estilo" / "Color") → pinta la vista previa del texto.
+  const customTextPreview = useMemo<CustomTextPreviewStyle | undefined>(() => {
+    if (!customTextConfig) return undefined
+    const colorOpt = options.find(
+      (o) => o.title.toLowerCase() === 'estilo' || isLooksLikeColorOption(o.title),
+    )
+    const value = colorOpt ? selected[colorOpt.id] : undefined
+    if (!value) return undefined
+    const s = styleOf(value)
+    if (s.type === 'none') return undefined
+    const light =
+      ['#ffffff', '#fff', '#f5f5f5', '#bdbdbd'].includes(s.background.toLowerCase()) ||
+      /cromo plata|amarillo fluor/i.test(value)
+    return { paint: s.background, light, name: value }
+  }, [customTextConfig, options, selected])
+
   function onSubmit() {
     if (!matchedVariant) {
       toast.error(t('select_variant'))
       return
     }
+    if (customTextMissing) {
+      setCustomTextTouched(true)
+      toast.error('Escribe tu texto personalizado antes de añadir al carrito')
+      return
+    }
+    const metadata =
+      customTextConfig && normalizedCustomText
+        ? { [CUSTOM_TEXT_KEY]: normalizedCustomText }
+        : undefined
     startTransition(async () => {
       const res = await addToCartAction({
         variantId: matchedVariant.id,
         quantity,
         countryCode,
+        ...(metadata ? { metadata } : {}),
       })
       if (!res.ok) {
         toast.error(res.message ?? 'Error añadiendo al carrito')
         return
       }
-      toast.success(`${product.title} añadido al carrito`)
+      toast.success(
+        metadata
+          ? `${product.title} «${normalizedCustomText}» añadido al carrito`
+          : `${product.title} añadido al carrito`,
+      )
       openCartDrawer()
     })
   }
@@ -280,63 +325,79 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
         })}
       </div>
 
-      {/* ─── CTA bloque: precio + cantidad + add to cart ───────── */}
-      <div
-        id="pdp-add-to-cart"
-        className="rounded-[16px] border border-rt-ink-100 bg-rt-white-2 p-4 md:p-5"
-      >
-        <div className="flex items-baseline gap-2">
-          {showAsFrom ? (
-            <span className="font-[family-name:var(--font-heading)] text-[11px] font-bold uppercase tracking-[0.18em] text-rt-ink-500">
-              Desde
-            </span>
-          ) : null}
-          <span className="font-[family-name:var(--font-heading)] text-[26px] font-extrabold leading-none tracking-[-0.01em] tabular-nums text-rt-black md:text-[30px]">
-            {formatMoney(amount * quantity, currency, localeStr)}
-          </span>
-          {compareAt && compareAt > amount ? (
-            <span className="font-[family-name:var(--font-heading)] text-[14px] text-rt-ink-500 line-through">
-              {formatMoney(compareAt * quantity, currency, localeStr)}
-            </span>
-          ) : null}
-        </div>
-
-        <p className="mt-1.5 text-[12px] text-rt-ink-500">
-          {quantity > 1 ? (
-            <>
-              <span className="tabular-nums">
-                {quantity} × {formatMoney(amount, currency, localeStr)}
-              </span>
-              {' · '}
-            </>
-          ) : null}
-          ✓ Fabricación 24–72h · envío express
-        </p>
-
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <QuantitySelector
-            value={quantity}
-            onChange={setQuantity}
-            min={1}
-            max={20}
-            className="self-start sm:self-auto"
+      {/* ─── CTA bloque: [texto personalizado] + precio + cantidad + add to cart ─
+          El id vive en el wrapper para que la sticky de móvil lleve también
+          al campo de texto (si lo hay). */}
+      <div id="pdp-add-to-cart" className="space-y-4">
+        {customTextConfig ? (
+          <CustomTextField
+            config={customTextConfig}
+            value={customText}
+            onChange={setCustomText}
+            onBlur={() => setCustomTextTouched(true)}
+            preview={customTextPreview}
+            showRequiredError={customTextTouched}
           />
-          <Button
-            type="button"
-            size="lg"
-            className="w-full sm:flex-1"
-            onClick={onSubmit}
-            disabled={pending || !matchedVariant || !inStock}
-          >
-            <ShoppingBag className="h-3.5 w-3.5" />
-            {!matchedVariant
-              ? t('select_variant')
-              : !inStock
-                ? t('out_of_stock')
-                : pending
-                  ? 'Añadiendo…'
-                  : t('add_to_cart')}
-          </Button>
+        ) : null}
+        <div className="rounded-[16px] border border-rt-ink-100 bg-rt-white-2 p-4 md:p-5">
+          <div className="flex items-baseline gap-2">
+            {showAsFrom ? (
+              <span className="font-[family-name:var(--font-heading)] text-[11px] font-bold uppercase tracking-[0.18em] text-rt-ink-500">
+                Desde
+              </span>
+            ) : null}
+            <span className="font-[family-name:var(--font-heading)] text-[26px] font-extrabold leading-none tracking-[-0.01em] tabular-nums text-rt-black md:text-[30px]">
+              {formatMoney(amount * quantity, currency, localeStr)}
+            </span>
+            {compareAt && compareAt > amount ? (
+              <span className="font-[family-name:var(--font-heading)] text-[14px] text-rt-ink-500 line-through">
+                {formatMoney(compareAt * quantity, currency, localeStr)}
+              </span>
+            ) : null}
+          </div>
+
+          <p className="mt-1.5 text-[12px] text-rt-ink-500">
+            {quantity > 1 ? (
+              <>
+                <span className="tabular-nums">
+                  {quantity} × {formatMoney(amount, currency, localeStr)}
+                </span>
+                {' · '}
+              </>
+            ) : null}
+            ✓ Fabricación 24–72h · envío express
+          </p>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <QuantitySelector
+              value={quantity}
+              onChange={setQuantity}
+              min={1}
+              max={20}
+              className="self-start sm:self-auto"
+            />
+            <Button
+              type="button"
+              size="lg"
+              className="w-full sm:flex-1"
+              onClick={onSubmit}
+              disabled={pending || !matchedVariant || !inStock || customTextMissing}
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              {!matchedVariant
+                ? t('select_variant')
+                : !inStock
+                  ? t('out_of_stock')
+                  : pending
+                    ? 'Añadiendo…'
+                    : t('add_to_cart')}
+            </Button>
+          </div>
+          {customTextMissing && customTextConfig ? (
+            <p className="mt-2.5 text-[12px] text-rt-ink-500">
+              ✎ Escribe «{customTextConfig.label}» arriba para poder añadirlo al carrito.
+            </p>
+          ) : null}
         </div>
       </div>
     </div>
@@ -507,9 +568,7 @@ function ColorSection({ colors, value, dimmed, showLabel, onChange }: ColorSecti
     [featured, activeColor],
   )
   const extraVisible =
-    activeColor && !activeIsInFeatured
-      ? remaining.find((c) => c.value === activeColor)
-      : undefined
+    activeColor && !activeIsInFeatured ? remaining.find((c) => c.value === activeColor) : undefined
 
   return (
     <section className="space-y-2.5">

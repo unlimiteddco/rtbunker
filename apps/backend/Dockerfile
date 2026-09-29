@@ -46,5 +46,8 @@ COPY --from=builder /app/apps/backend/.medusa/server ./
 RUN npm install --omit=dev --no-audit --no-fund
 
 EXPOSE 9000
-# db:migrate carga el medusa-config.js compilado; luego arranca el server.
-CMD ["sh", "-c", "npx medusa db:migrate && npm run start"]
+# db:migrate carga el medusa-config.js compilado; después se habilita el pago
+# manual (transferencia bancaria, `pp_system_default`) en todas las regiones
+# —script idempotente; si falla solo se registra y NO impide arrancar— y luego
+# arranca el server.
+CMD ["sh", "-c", "npx medusa db:migrate && (npx medusa exec ./src/scripts/enable-manual-payment.js || echo '[startup] enable-manual-payment falló; se continúa') && npm run start"]

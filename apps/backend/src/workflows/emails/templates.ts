@@ -78,6 +78,60 @@ const formatMoney = (amount: number, currency: string) =>
     amount,
   )
 
+/** Escapa texto introducido por el cliente (p.ej. texto personalizado). */
+const escapeHtml = (v: string) =>
+  v
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
+/** Línea "Texto: …" bajo el producto si el line item lleva texto personalizado. */
+const customTextLine = (text?: string | null) =>
+  text
+    ? `<p style="margin:2px 0 0; font-size:12px; color:${BRAND.ink};">Texto: <strong>${escapeHtml(text)}</strong></p>`
+    : ''
+
+export type BankTransferEmailData = {
+  holder: string | null
+  iban: string | null
+  bank: string | null
+  bic: string | null
+}
+
+/**
+ * Bloque destacado con los datos para pagar por transferencia bancaria.
+ * Concepto = "Pedido #<display_id>" para poder conciliar el ingreso.
+ */
+const bankTransferBlock = (
+  bank: BankTransferEmailData,
+  displayId: number | string,
+  total: number,
+  currency: string,
+) => {
+  const row = (label: string, value: string | null, mono = false) =>
+    value
+      ? `<tr>
+           <td style="padding:5px 12px 5px 0; font-size:12px; color:${BRAND.muted}; white-space:nowrap; vertical-align:top;">${label}</td>
+           <td style="padding:5px 0; font-size:14px; font-weight:700; color:${BRAND.carbon};${mono ? " font-family:'SFMono-Regular',Menlo,Consolas,monospace; letter-spacing:0.02em;" : ''}">${escapeHtml(value)}</td>
+         </tr>`
+      : ''
+  return `<div style="margin:0 0 26px; padding:18px 20px; border:2px solid ${BRAND.cyan}; border-radius:12px; background:#f0fbfb;">
+     <p style="margin:0 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:0.14em; color:${BRAND.cyanDeep}; font-weight:700;">Pago pendiente · transferencia bancaria</p>
+     <p style="margin:0 0 14px; font-size:14px; color:${BRAND.ink};">Para completar tu pedido, haz una transferencia con estos datos. <strong>Preparamos tu pedido en cuanto recibamos el pago</strong> (normalmente 1–2 días hábiles).</p>
+     <table role="presentation" cellpadding="0" cellspacing="0">
+       ${row('Importe', formatMoney(total, currency))}
+       ${row('Titular', bank.holder)}
+       ${row('IBAN', bank.iban, true)}
+       ${row('Banco', bank.bank)}
+       ${row('BIC', bank.bic, true)}
+       ${row('Concepto', `Pedido #${displayId}`)}
+     </table>
+     <p style="margin:12px 0 0; font-size:12px; color:${BRAND.muted};">Indica el concepto exactamente así para que podamos identificar tu pago.</p>
+   </div>`
+}
+
 /** Botón CTA inline. variant cyan (default) o dark. */
 const button = (href: string, label: string, variant: 'cyan' | 'dark' = 'cyan') => {
   const bg = variant === 'dark' ? BRAND.carbon : BRAND.cyan
@@ -109,7 +163,10 @@ export const orderPlacedTemplate = (order: {
     unit_price?: number | null
     thumbnail?: string | null
     variant_title?: string | null
+    custom_text?: string | null
   }>
+  /** Si viene, el pedido se paga por transferencia: se muestran los datos. */
+  bank_transfer?: BankTransferEmailData | null
 }) => {
   const cur = order.currency_code
   const base = (order.storefront_url ?? storeBase()).replace(/\/$/, '')
@@ -130,6 +187,7 @@ export const orderPlacedTemplate = (order: {
         <td style="padding:12px 8px 12px 0; vertical-align:middle;">
           <p style="margin:0; font-size:14px; font-weight:600; color:${BRAND.carbon};">${it.title}</p>
           ${variant}
+          ${customTextLine(it.custom_text)}
           <p style="margin:4px 0 0; font-size:12px; color:${BRAND.muted};">Cantidad: ${it.quantity}</p>
         </td>
         <td style="padding:12px 0; vertical-align:middle; text-align:right; white-space:nowrap; font-size:14px; font-weight:600; color:${BRAND.carbon};">
@@ -168,13 +226,26 @@ export const orderPlacedTemplate = (order: {
          </div>`
       : ''
 
+  const bt = order.bank_transfer ?? null
+  const intro = bt
+    ? `Hemos recibido tu pedido <strong>#${order.display_id}</strong>. Solo falta el pago por transferencia:`
+    : `Hemos recibido tu pedido <strong>#${order.display_id}</strong> y ya estamos con él.
+       Aquí tienes el resumen:`
+  const bankBlock = bt ? bankTransferBlock(bt, order.display_id, order.total, cur) : ''
+  const firstStep = bt
+    ? 'En cuanto recibamos tu transferencia, preparamos tu pedido en el taller de Cuarte de Huerva.'
+    : 'Preparamos tu pedido en el taller de Cuarte de Huerva.'
+
   return {
-    subject: `Pedido #${order.display_id} confirmado · ¡gracias!`,
+    subject: bt
+      ? `Pedido #${order.display_id} recibido · datos para la transferencia`
+      : `Pedido #${order.display_id} confirmado · ¡gracias!`,
     html: wrap(
-      `Pedido confirmado`,
+      bt ? `Pedido recibido` : `Pedido confirmado`,
       `<p style="margin:0 0 6px;">${greeting}</p>
-       <p style="margin:0 0 22px;">Hemos recibido tu pedido <strong>#${order.display_id}</strong> y ya estamos con él.
-       Aquí tienes el resumen:</p>
+       <p style="margin:0 0 22px;">${intro}</p>
+
+       ${bankBlock}
 
        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${itemRows}</table>
 
@@ -186,11 +257,15 @@ export const orderPlacedTemplate = (order: {
 
        <div style="margin-top:30px; padding-top:22px; border-top:1px solid ${BRAND.line};">
          <p style="margin:0 0 12px; font-size:11px; text-transform:uppercase; letter-spacing:0.14em; color:${BRAND.muted};">Qué pasa ahora</p>
-         <p style="margin:0 0 8px; font-size:14px; color:${BRAND.ink};"><strong style="color:${BRAND.cyanDeep};">1.</strong> Preparamos tu pedido en el taller de Cuarte de Huerva.</p>
+         <p style="margin:0 0 8px; font-size:14px; color:${BRAND.ink};"><strong style="color:${BRAND.cyanDeep};">1.</strong> ${firstStep}</p>
          <p style="margin:0 0 8px; font-size:14px; color:${BRAND.ink};"><strong style="color:${BRAND.cyanDeep};">2.</strong> Te avisamos por email en cuanto salga, con el seguimiento.</p>
          <p style="margin:0; font-size:14px; color:${BRAND.ink};"><strong style="color:${BRAND.cyanDeep};">3.</strong> Suele llegar en 24–72 h laborables.</p>
        </div>`,
-      { preheader: `Tu pedido #${order.display_id} está confirmado · total ${formatMoney(order.total, cur)}` },
+      {
+        preheader: bt
+          ? `Pedido #${order.display_id} · transfiere ${formatMoney(order.total, cur)} con concepto "Pedido #${order.display_id}"`
+          : `Tu pedido #${order.display_id} está confirmado · total ${formatMoney(order.total, cur)}`,
+      },
     ),
   }
 }
@@ -206,11 +281,14 @@ export const orderPlacedAdminTemplate = (order: {
   total: number
   currency_code: string
   admin_url: string
+  /** true si el cliente eligió transferencia: el pago está pendiente. */
+  is_bank_transfer?: boolean
   items: Array<{
     title: string
     quantity: number
     unit_price?: number | null
     variant_title?: string | null
+    custom_text?: string | null
   }>
 }) => {
   const cur = order.currency_code
@@ -226,6 +304,7 @@ export const orderPlacedAdminTemplate = (order: {
         <td style="padding:10px 8px 10px 0; vertical-align:middle;">
           <p style="margin:0; font-size:14px; font-weight:600; color:${BRAND.carbon};">${it.title}</p>
           ${variant}
+          ${customTextLine(it.custom_text)}
           <p style="margin:4px 0 0; font-size:12px; color:${BRAND.muted};">Cantidad: ${it.quantity}</p>
         </td>
         <td style="padding:10px 0; vertical-align:middle; text-align:right; white-space:nowrap; font-size:14px; font-weight:600; color:${BRAND.carbon};">
@@ -240,10 +319,15 @@ export const orderPlacedAdminTemplate = (order: {
     : order.email
 
   return {
-    subject: `Nuevo pedido #${order.display_id} · ${formatMoney(order.total, cur)}`,
+    subject: `Nuevo pedido #${order.display_id} · ${formatMoney(order.total, cur)}${order.is_bank_transfer ? ' · TRANSFERENCIA PENDIENTE' : ''}`,
     html: wrap(
       `Nuevo pedido #${order.display_id}`,
       `<p style="margin:0 0 6px;">Ha entrado un pedido nuevo.</p>
+       ${
+         order.is_bank_transfer
+           ? `<p style="margin:0 0 14px; padding:10px 14px; border-radius:10px; background:#fff6e0; font-size:14px; color:${BRAND.carbon};"><strong>Pago por transferencia — PENDIENTE.</strong> No lo prepares hasta recibir el ingreso con concepto "Pedido #${order.display_id}". Después, en el admin: pedido → Pago → <em>Capturar</em>.</p>`
+           : ''
+       }
        <p style="margin:0 0 22px; font-size:14px; color:${BRAND.ink};"><strong>Cliente:</strong> ${customer}</p>
 
        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${itemRows}</table>

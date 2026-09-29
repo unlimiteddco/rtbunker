@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { addLineItem, clearCart, getCart, updateLineItem } from '@/lib/cart'
+import { CUSTOM_TEXT_KEY } from '@/lib/custom-text'
 
 export interface AddToCartResult {
   ok: boolean
@@ -15,19 +16,41 @@ export interface AddToCartResult {
   }
 }
 
+/**
+ * Solo dejamos pasar al line item las claves que la ficha de producto puede
+ * enviar (hoy: `custom_text`). Evita que un cliente manipulado inyecte flags
+ * internos como `custom_request`.
+ */
+function sanitizeLineItemMetadata(
+  metadata: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!metadata) return undefined
+  const out: Record<string, unknown> = {}
+  const raw = metadata[CUSTOM_TEXT_KEY]
+  if (typeof raw === 'string') {
+    const text = raw.replace(/\s+/g, ' ').trim().slice(0, 200)
+    if (text) out[CUSTOM_TEXT_KEY] = text
+  }
+  return Object.keys(out).length > 0 ? out : undefined
+}
+
 /** Server action invocada desde el cliente — devuelve estado para el drawer/toast. */
 export async function addToCartAction(input: {
   variantId: string
   quantity: number
   countryCode: string
+  /** Metadata del line item (p.ej. `{ custom_text: '@usuario' }`). */
+  metadata?: Record<string, unknown>
 }): Promise<AddToCartResult> {
   if (!input.variantId) return { ok: false, message: 'Selecciona una variante' }
+  const metadata = sanitizeLineItemMetadata(input.metadata)
 
   try {
     const cart = await addLineItem({
       variantId: input.variantId,
       quantity: input.quantity,
       countryCode: input.countryCode,
+      ...(metadata ? { metadata } : {}),
     })
     revalidatePath(`/${input.countryCode}`, 'layout')
     const itemCount = (cart.items ?? []).reduce((sum, i) => sum + i.quantity, 0)

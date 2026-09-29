@@ -46,7 +46,7 @@ export const getProductByHandle = cache(async (handle: string, countryCode: stri
       handle,
       region_id: region.id,
       fields:
-        '*variants.calculated_price,+variants.inventory_quantity,*variants.options,*options.values,*images,*categories,*collection',
+        '*variants.calculated_price,+variants.inventory_quantity,*variants.options,*options.values,*images,*categories,*collection,+metadata',
     },
     { next: { revalidate: 60, tags: [`product:${handle}`] } } as RequestInit,
   )
