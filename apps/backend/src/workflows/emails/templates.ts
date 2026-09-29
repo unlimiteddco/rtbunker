@@ -17,6 +17,27 @@ const BRAND = {
 const storeBase = () => (process.env.STOREFRONT_URL ?? 'https://rtbunker.com/es').replace(/\/$/, '')
 
 /**
+ * Logo real de la marca para la cabecera. Tiene que ser una URL pública
+ * absoluta (los clientes de correo no pueden leer rutas relativas ni
+ * localhost): por defecto el PNG blanco servido por el storefront, sobre el
+ * fondo carbón de la cabecera. EMAIL_LOGO_URL permite apuntarlo a otro sitio.
+ */
+const logoUrl = () => {
+  if (process.env.EMAIL_LOGO_URL) return process.env.EMAIL_LOGO_URL
+  // Solo derivamos del storefront si está configurado explícitamente y no es
+  // local: el fallback de storeBase() apunta a un dominio que aún no existe.
+  const configured = process.env.STOREFRONT_URL
+  if (configured && !/localhost|127\.0\.0\.1/.test(configured)) {
+    try {
+      return `${new URL(configured).origin}/logo-white.png`
+    } catch {
+      /* URL mal formada → fallback */
+    }
+  }
+  return 'https://rtbunker.bellostas.studio/logo-white.png'
+}
+
+/**
  * Shell de marca: cabecera carbón con el wordmark, tarjeta blanca con el
  * contenido y pie carbón con enlaces. `preheader` es el texto de preview que
  * muestran las bandejas de entrada antes de abrir el email.
@@ -41,7 +62,10 @@ const wrap = (title: string, body: string, opts: { preheader?: string } = {}) =>
         <tr><td style="background:${BRAND.carbon}; border-radius:16px 16px 0 0; padding:22px 28px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
             <td style="vertical-align:middle;">
-              <span style="color:#ffffff; font-size:21px; font-weight:800; letter-spacing:0.22em; text-transform:uppercase;">RT&nbsp;BUNKER</span>
+              <a href="${base}" style="text-decoration:none;">
+                <img src="${logoUrl()}" alt="RT BUNKER" width="160" height="26"
+                  style="display:block; width:160px; height:auto; max-width:160px; border:0; outline:none; color:#ffffff; font-size:18px; font-weight:800; letter-spacing:0.2em;" />
+              </a>
             </td>
             <td align="right" style="vertical-align:middle;">
               <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:${BRAND.cyan};"></span>
@@ -62,7 +86,7 @@ const wrap = (title: string, body: string, opts: { preheader?: string } = {}) =>
             <span style="color:#444;"> · </span>
             <a href="${base}/cuenta" style="color:${BRAND.cyan}; text-decoration:none;">Mi cuenta</a>
             <span style="color:#444;"> · </span>
-            <a href="https://instagram.com/rtbunker" style="color:${BRAND.cyan}; text-decoration:none;">@rtbunker</a>
+            <a href="https://instagram.com/rtbunker_" style="color:${BRAND.cyan}; text-decoration:none;">@rtbunker_</a>
           </p>
           <p style="margin:14px 0 0; color:#555; font-size:11px;">Email automático. Si necesitas ayuda, responde directamente a este mensaje.</p>
         </td></tr>
@@ -384,7 +408,7 @@ export const orderDeliveredTemplate = (order: {
        <p style="margin:0 0 18px;">Tu pedido <strong>#${order.display_id}</strong> aparece como entregado.
        Esperamos que haya llegado en perfecto estado y que te encante tanto como a nosotros.</p>
        <p style="margin:0 0 22px;">Si quieres lucirlo en Instagram, etiquétanos como
-       <strong>@rtbunker</strong> — nos hace mucha ilusión ver dónde acaban nuestras creaciones.</p>
+       <strong>@rtbunker_</strong> — nos hace mucha ilusión ver dónde acaban nuestras creaciones.</p>
 
        <div style="margin:8px 0 6px;">${button(`${base}/tienda`, 'Volver a la tienda →')}</div>
 
@@ -604,7 +628,7 @@ export const customOrderDeliveredTemplate = (data: {
       `<p>${greeting}</p>
        <p>Tu pedido <strong>${data.order_short_id}</strong> aparece como entregado.
        Esperamos que las pegatinas hayan llegado en perfecto estado y te encanten.</p>
-       <p>Si quieres compartirlas en Instagram, etiquétanos como <strong>@rtbunker</strong> —
+       <p>Si quieres compartirlas en Instagram, etiquétanos como <strong>@rtbunker_</strong> —
        nos hace mucha ilusión ver dónde acaban nuestras creaciones.</p>
        <p style="margin-top:24px; color:#666; font-size:13px;">
          ¿Algún problema con la entrega? Responde a este email y lo resolvemos.
