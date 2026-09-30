@@ -17,7 +17,7 @@ export interface SearchHit {
 export async function searchProducts(query: string, limit = 10): Promise<SearchHit[]> {
   if (!query.trim()) return []
 
-  const url = new URL('/store/search', env.MEDUSA_BACKEND_URL ?? env.NEXT_PUBLIC_MEDUSA_BACKEND_URL)
+  const url = new URL('/store/search', env.MEDUSA_BACKEND_URL || env.NEXT_PUBLIC_MEDUSA_BACKEND_URL)
   url.searchParams.set('q', query)
   url.searchParams.set('limit', String(limit))
 

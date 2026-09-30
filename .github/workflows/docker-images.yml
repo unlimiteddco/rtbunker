@@ -69,6 +69,9 @@ jobs:
           cache-to: type=gha,scope=storefront,mode=max
           build-args: |
             NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://api.rtbunker.com
+            # Solo para prerenderizar en el build (mismo backend, dominio que ya
+            # resuelve). Cuando api.rtbunker.com esté activo puede apuntar ahí.
+            BUILD_MEDUSA_BACKEND_URL=https://api.rtbunker.bellostas.studio
             NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_41bef6f8314c75866eef77c942a7d247e1fefdb52e24b8ba80136b77a23d04f3
             NEXT_PUBLIC_BASE_URL=https://rtbunker.com
             NEXT_PUBLIC_DEFAULT_REGION=es

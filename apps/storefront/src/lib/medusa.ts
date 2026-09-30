@@ -10,7 +10,7 @@ import { env } from '@/../env'
 export const sdk = new Medusa({
   baseUrl:
     typeof window === 'undefined'
-      ? (process.env.MEDUSA_BACKEND_URL ?? env.NEXT_PUBLIC_MEDUSA_BACKEND_URL)
+      ? (process.env.MEDUSA_BACKEND_URL || env.NEXT_PUBLIC_MEDUSA_BACKEND_URL)
       : env.NEXT_PUBLIC_MEDUSA_BACKEND_URL,
   publishableKey: env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
   auth: { type: 'session' },
