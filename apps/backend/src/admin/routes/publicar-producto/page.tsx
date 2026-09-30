@@ -39,7 +39,7 @@ import { sdk } from '../../lib/client'
 /** URL pública de la tienda (para el enlace "Ver en la tienda"). */
 const STOREFRONT_URL = (
   (import.meta.env.VITE_STOREFRONT_URL as string | undefined) ||
-  'https://rtbunker.bellostas.studio'
+  'https://rtbunker.com'
 ).replace(/\/+$/, '')
 
 const productUrl = (handle: string) => `${STOREFRONT_URL}/es/producto/${handle}`

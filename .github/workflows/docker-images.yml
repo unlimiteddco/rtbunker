@@ -9,7 +9,8 @@
 # NOTA storefront: las NEXT_PUBLIC_* se queman en build-time → van como
 # build-args con los valores de STAGING (todas son públicas de cliente, no
 # hay secretos: publishable key, pk_test de Stripe, dominio, WhatsApp).
-# Para producción real, cambiar estos valores y relanzar el workflow.
+# Valores de PRODUCCIÓN (rtbunker.com). Stripe sigue en modo prueba y no se
+# ofrece en el checkout mientras el backend no tenga STRIPE_API_KEY.
 
 name: docker-images
 
@@ -44,7 +45,7 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,scope=backend,mode=max
           build-args: |
-            MEDUSA_BACKEND_URL=https://api.rtbunker.bellostas.studio
+            MEDUSA_BACKEND_URL=https://api.rtbunker.com
 
   storefront:
     runs-on: ubuntu-latest
@@ -67,11 +68,11 @@ jobs:
           cache-from: type=gha,scope=storefront
           cache-to: type=gha,scope=storefront,mode=max
           build-args: |
-            NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://api.rtbunker.bellostas.studio
+            NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://api.rtbunker.com
             NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_41bef6f8314c75866eef77c942a7d247e1fefdb52e24b8ba80136b77a23d04f3
-            NEXT_PUBLIC_BASE_URL=https://rtbunker.bellostas.studio
+            NEXT_PUBLIC_BASE_URL=https://rtbunker.com
             NEXT_PUBLIC_DEFAULT_REGION=es
-            NEXT_PUBLIC_SITE_NOINDEX=true
+            NEXT_PUBLIC_SITE_NOINDEX=false
             NEXT_PUBLIC_STRIPE_KEY=pk_test_51Tc6XGPVrdgeoL7jgxiQL2vEOb0CvdWR3s3sie4e7tbDuEFsqxM0PUf1tumNYvav33Vfm7grEpUBwEFtpsGvT7qt00mOcv8KfG
             NEXT_PUBLIC_WHATSAPP_NUMBER=34624690489
             NEXT_PUBLIC_WHATSAPP_TEXT=Hola RT Bunker, tengo una consulta

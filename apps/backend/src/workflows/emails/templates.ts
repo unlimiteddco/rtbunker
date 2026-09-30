@@ -34,7 +34,7 @@ const logoUrl = () => {
       /* URL mal formada → fallback */
     }
   }
-  return 'https://rtbunker.bellostas.studio/logo-white.png'
+  return 'https://rtbunker.com/logo-white.png'
 }
 
 /**

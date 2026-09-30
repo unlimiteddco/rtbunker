@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
 
 import './env'
+import { legacyRedirects } from './src/lib/legacy-redirects'
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
@@ -29,6 +30,19 @@ const config: NextConfig = {
     ],
   },
   transpilePackages: ['@rtbunker/ui'],
+  async redirects() {
+    return [
+      // Un solo dominio canónico: www.rtbunker.com → rtbunker.com.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.rtbunker.com' }],
+        destination: 'https://rtbunker.com/:path*',
+        permanent: true,
+      },
+      // URLs de la web antigua (WooCommerce) → sus equivalentes nuevas.
+      ...legacyRedirects,
+    ]
+  },
 }
 
 export default withNextIntl(config)
