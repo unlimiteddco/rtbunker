@@ -13,14 +13,75 @@ export interface ListProductsParams {
   order?: string
 }
 
+/**
+ * Campos para las TARJETAS de producto (listados, destacados, relacionados).
+ *
+ * Importante para la velocidad: cada producto del catálogo tiene hasta 285
+ * variantes (colores × tamaños). Pidiendo `*variants.calculated_price` + imágenes
+ * + colección, una página de 12 productos pesaba ~3,8 MB; además de lenta, Next
+ * no guarda en su caché respuestas de más de 2 MB, así que se volvía a pedir en
+ * CADA visita. La tarjeta solo necesita título, foto, categoría y los importes
+ * para el «desde X €»: con esto la misma respuesta baja a ~230 KB y se cachea.
+ */
+export const PRODUCT_CARD_FIELDS = [
+  'id',
+  'title',
+  'handle',
+  'thumbnail',
+  'categories.id',
+  'categories.name',
+  'categories.handle',
+  'variants.id',
+  'variants.calculated_price.calculated_amount',
+  'variants.calculated_price.original_amount',
+  'variants.calculated_price.currency_code',
+].join(',')
+
+/**
+ * Campos de la FICHA de producto: lo que usan la galería, el selector de
+ * variantes, las pestañas y el JSON-LD, y nada más. Todo el objeto viaja al
+ * navegador (el selector es un componente cliente), así que recortarlo baja
+ * tanto la consulta (~630 KB → ~105 KB) como el HTML de la página.
+ */
+const PRODUCT_DETAIL_FIELDS = [
+  'id',
+  'title',
+  'subtitle',
+  'description',
+  'handle',
+  'thumbnail',
+  'weight',
+  'material',
+  'origin_country',
+  'metadata',
+  'images.id',
+  'images.url',
+  'categories.id',
+  'categories.name',
+  'categories.handle',
+  'options.id',
+  'options.title',
+  'options.values.id',
+  'options.values.value',
+  'variants.id',
+  'variants.sku',
+  'variants.manage_inventory',
+  'variants.allow_backorder',
+  'variants.inventory_quantity',
+  'variants.options.option_id',
+  'variants.options.value',
+  'variants.calculated_price.calculated_amount',
+  'variants.calculated_price.original_amount',
+  'variants.calculated_price.currency_code',
+].join(',')
+
 export const listProducts = cache(async (params: ListProductsParams) => {
   const region = await getRegion(params.countryCode)
   try {
     const { products, count, limit, offset } = await sdk.store.product.list(
       {
         region_id: region.id,
-        fields:
-          '*variants.calculated_price,+variants.inventory_quantity,*categories,*collection,*images',
+        fields: PRODUCT_CARD_FIELDS,
         limit: params.limit ?? 12,
         offset: params.offset ?? 0,
         ...(params.category_id ? { category_id: params.category_id } : {}),
@@ -45,8 +106,7 @@ export const getProductByHandle = cache(async (handle: string, countryCode: stri
     {
       handle,
       region_id: region.id,
-      fields:
-        '*variants.calculated_price,+variants.inventory_quantity,*variants.options,*options.values,*images,*categories,*collection,+metadata',
+      fields: PRODUCT_DETAIL_FIELDS,
     },
     { next: { revalidate: 60, tags: [`product:${handle}`] } } as RequestInit,
   )
@@ -126,6 +186,23 @@ export const getCategoryByHandle = cache(async (handle: string) => {
   }
 })
 
+/**
+ * Foto de muestra de una categoría: la del primer producto que tenga. Consulta
+ * mínima (sin variantes ni precios) y cacheada una hora.
+ */
+export const getCategoryThumbnail = cache(async (categoryIds: string[]): Promise<string | null> => {
+  try {
+    const { products } = await sdk.store.product.list(
+      { category_id: categoryIds, limit: 1, fields: 'thumbnail,images.url' },
+      { next: { revalidate: 3600, tags: ['products'] } } as RequestInit,
+    )
+    const p = products[0] as { thumbnail?: string | null; images?: { url: string }[] } | undefined
+    return p?.thumbnail ?? p?.images?.[0]?.url ?? null
+  } catch {
+    return null
+  }
+})
+
 export interface ShopMenuNode extends CategoryTreeNode {
   thumbnail: string | null
 }
@@ -144,17 +221,7 @@ export const getShopMenuData = cache(async (): Promise<ShopMenuNode[]> => {
     roots.map(async (root) => {
       const children = childrenOf(root.id)
       const ids = [root.id, ...children.map((c) => c.id)]
-      let thumbnail: string | null = null
-      try {
-        const { products } = await sdk.store.product.list(
-          { category_id: ids, limit: 1, fields: 'thumbnail,images.url' },
-          { next: { revalidate: 3600, tags: ['products'] } } as RequestInit,
-        )
-        const p = products[0] as { thumbnail?: string | null; images?: { url: string }[] } | undefined
-        thumbnail = p?.thumbnail ?? p?.images?.[0]?.url ?? null
-      } catch {
-        thumbnail = null
-      }
+      const thumbnail = await getCategoryThumbnail(ids)
       return {
         id: root.id,
         name: root.name,

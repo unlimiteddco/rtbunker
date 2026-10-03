@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 
 import { Link } from '@/i18n/routing'
-import { listCategories, listProducts } from '@/lib/products'
+import { getCategoryThumbnail, listCategories } from '@/lib/products'
 import { getFeaturedCategories } from '@/lib/site-content'
 
 interface CategoryGridProps {
@@ -67,21 +67,12 @@ export async function CategoryGrid({ locale }: CategoryGridProps) {
 
   if (categories.length === 0) return null
 
-  // En paralelo: para cada categoría sin foto fijada pedimos UN producto solo
-  // para sacar su thumbnail. Si no hay, queda null y usamos fallback.
+  // En paralelo: para cada categoría sin foto fijada, la miniatura de su
+  // primer producto (consulta mínima y cacheada). Sin foto → fallback de color.
   const withImages = await Promise.all(
     categories.map(async (cat): Promise<CategoryTile & { image: string | null }> => {
       if (cat.presetImage) return { ...cat, image: cat.presetImage }
-      try {
-        const { products } = await listProducts({
-          countryCode: locale,
-          category_id: [cat.id],
-          limit: 1,
-        })
-        return { ...cat, image: products[0]?.thumbnail ?? null }
-      } catch {
-        return { ...cat, image: null }
-      }
+      return { ...cat, image: await getCategoryThumbnail([cat.id]) }
     }),
   )
 

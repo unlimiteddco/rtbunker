@@ -1,6 +1,7 @@
 import { cache } from 'react'
 
 import { sdk } from './medusa'
+import { PRODUCT_CARD_FIELDS } from './products'
 import { getRegion } from './region'
 
 /**
@@ -19,7 +20,7 @@ export const listRelatedProducts = cache(
       {
         region_id: region.id,
         limit: (params.limit ?? 4) + 1,
-        fields: '*variants.calculated_price,*images,*categories',
+        fields: PRODUCT_CARD_FIELDS,
         ...(params.categoryIds.length > 0 ? { category_id: params.categoryIds } : {}),
       },
       { next: { revalidate: 60, tags: ['products'] } } as RequestInit,
