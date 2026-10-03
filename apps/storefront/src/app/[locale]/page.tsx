@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { setRequestLocale } from 'next-intl/server'
 
 import { AboutBanner } from '@/components/home/about-banner'
@@ -13,11 +14,30 @@ import { ProductCard } from '@/components/product/product-card'
 import { Link } from '@/i18n/routing'
 import { listProducts } from '@/lib/products'
 import { getFeaturedReviews } from '@/lib/reviews'
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, OG_IMAGE, SITE_NAME } from '@/lib/seo'
 
 export const revalidate = 60
 
 interface HomeProps {
   params: Promise<{ locale: string }>
+}
+
+export async function generateMetadata({ params }: HomeProps): Promise<Metadata> {
+  const { locale } = await params
+  return {
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    alternates: { canonical: `/${locale}` },
+    openGraph: {
+      siteName: SITE_NAME,
+      type: 'website',
+      locale: 'es_ES',
+      url: `/${locale}`,
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+      images: [OG_IMAGE],
+    },
+  }
 }
 
 export default async function HomePage({ params }: HomeProps) {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 import { env } from '@/../env'
 import { locales } from '@/i18n/config'
+import { OG_IMAGE, SITE_NAME } from '@/lib/seo'
 
 /**
  * Helper para construir metadata raíz por locale, con alternates hreflang.
@@ -31,6 +32,8 @@ export function buildMetadata(input: {
       description: input.description,
       url: `${base}/${input.locale}${path}`,
       type: 'website',
+      siteName: SITE_NAME,
+      images: [OG_IMAGE],
     },
   }
 }

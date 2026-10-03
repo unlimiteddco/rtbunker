@@ -8,6 +8,7 @@ import { FaqChat, type FaqChatItem } from '@/components/ui/faq-chat'
 import { Link } from '@/i18n/routing'
 import { cn } from '@/lib/cn'
 import { MEMBERSHIP_TIERS, type MembershipTier, tierSavingsPct } from '@/lib/memberships'
+import { shareMetadata } from '@/lib/seo'
 
 export async function generateMetadata({
   params,
@@ -15,11 +16,14 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
+  const title = 'Planes de suscripción · RT Bunker Club'
+  const description =
+    'Hazte socio de RT Bunker: créditos mensuales para pegatinas personalizadas, envío urgente gratis, impresión el mismo día y hasta un 10% de descuento en todos tus pedidos.'
   return {
-    title: 'Planes de suscripción · RT Bunker Club',
-    description:
-      'Hazte socio de RT Bunker: créditos mensuales para pegatinas personalizadas, envío urgente gratis, impresión el mismo día y hasta un 10% de descuento en todos tus pedidos.',
+    title,
+    description,
     alternates: { canonical: `/${locale}/planes` },
+    ...shareMetadata({ title, description, path: `/${locale}/planes` }),
   }
 }
 

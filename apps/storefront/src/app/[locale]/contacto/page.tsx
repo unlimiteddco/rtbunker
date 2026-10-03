@@ -4,6 +4,7 @@ import { setRequestLocale } from 'next-intl/server'
 
 import { ContactForm } from '@/components/contact/contact-form'
 import { Link } from '@/i18n/routing'
+import { shareMetadata } from '@/lib/seo'
 
 interface ContactPageProps {
   params: Promise<{ locale: string }>
@@ -11,11 +12,14 @@ interface ContactPageProps {
 
 export async function generateMetadata({ params }: ContactPageProps): Promise<Metadata> {
   const { locale } = await params
+  const title = 'Contacto · RT Bunker'
+  const description =
+    'Hablemos. Escríbenos para pedidos, pegatinas personalizadas, plazos o cualquier duda. Respondemos en menos de 24 h laborables.'
   return {
-    title: 'Contacto · RT Bunker',
-    description:
-      'Hablemos. Escríbenos para pedidos, pegatinas personalizadas, plazos o cualquier duda. Respondemos en menos de 24 h laborables.',
+    title,
+    description,
     alternates: { canonical: `/${locale}/contacto` },
+    ...shareMetadata({ title, description, path: `/${locale}/contacto` }),
   }
 }
 

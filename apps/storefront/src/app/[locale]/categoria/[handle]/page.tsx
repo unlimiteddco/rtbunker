@@ -9,6 +9,7 @@ import { CategoryFilter } from '@/components/shop/category-filter'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/routing'
 import { getCategoryByHandle, getCategoryTree, listCategories, listProducts } from '@/lib/products'
+import { OG_IMAGE, SITE_NAME } from '@/lib/seo'
 
 export const revalidate = 60
 
@@ -42,7 +43,13 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       title: `${category.name} · RT Bunker`,
       description,
       alternates: { canonical: `/${locale}/categoria/${handle}` },
-      openGraph: { title: `${category.name} · RT Bunker`, description },
+      openGraph: {
+        title: `${category.name} · RT Bunker`,
+        description,
+        siteName: SITE_NAME,
+        type: 'website',
+        images: [OG_IMAGE],
+      },
     }
   } catch (error) {
     console.error(`[categoria/${handle}] generateMetadata falló:`, error)

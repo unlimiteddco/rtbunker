@@ -5,6 +5,7 @@ import { setRequestLocale } from 'next-intl/server'
 
 import { Reveal } from '@/components/services/reveal'
 import { Link } from '@/i18n/routing'
+import { shareMetadata } from '@/lib/seo'
 
 export async function generateMetadata({
   params,
@@ -12,11 +13,14 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
+  const title = 'Nosotros · RT Bunker'
+  const description =
+    'La historia de RT Bunker: de un proyecto nacido en 2022 de la pasión por el motor a un taller de wrapping, adhesivos y personalización premium. Conoce a Nikita y nuestra filosofía.'
   return {
-    title: 'Nosotros · RT Bunker',
-    description:
-      'La historia de RT Bunker: de un proyecto nacido en 2022 de la pasión por el motor a un taller de wrapping, adhesivos y personalización premium. Conoce a Nikita y nuestra filosofía.',
+    title,
+    description,
     alternates: { canonical: `/${locale}/nosotros` },
+    ...shareMetadata({ title, description, path: `/${locale}/nosotros` }),
   }
 }
 

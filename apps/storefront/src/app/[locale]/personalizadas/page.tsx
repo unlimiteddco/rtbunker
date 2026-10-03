@@ -9,6 +9,7 @@ import { PersonalizadasLogosMarquee } from '@/components/personalizadas/personal
 import { PersonalizadasProductPicker } from '@/components/personalizadas/personalizadas-product-picker'
 import { getMembership, isActiveMembership } from '@/lib/membership'
 import { getFeaturedReviews } from '@/lib/reviews'
+import { shareMetadata } from '@/lib/seo'
 
 interface PersonalizadasPageProps {
   params: Promise<{ locale: string }>
@@ -18,13 +19,16 @@ export async function generateMetadata({
   params,
 }: PersonalizadasPageProps): Promise<Metadata> {
   const { locale } = await params
+  const title = 'Pegatinas personalizadas · RT Bunker'
+  const description =
+    'Diseña tu pegatina a medida en una sola pantalla. Forma, material, tamaño y cantidad. Precio al instante y envío en 24–48 h a toda España.'
   return {
-    title: 'Pegatinas personalizadas · RT Bunker',
-    description:
-      'Diseña tu pegatina a medida en una sola pantalla. Forma, material, tamaño y cantidad. Precio al instante y envío en 24–48 h a toda España.',
+    title,
+    description,
     alternates: {
       canonical: `/${locale}/personalizadas`,
     },
+    ...shareMetadata({ title, description, path: `/${locale}/personalizadas` }),
   }
 }
 

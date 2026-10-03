@@ -8,6 +8,7 @@ import { ProductCard } from '@/components/product/product-card'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/routing'
 import { listCategories, listProducts } from '@/lib/products'
+import { shareMetadata } from '@/lib/seo'
 
 export const revalidate = 60
 
@@ -24,7 +25,15 @@ interface ShopPageProps {
 export async function generateMetadata({ params }: ShopPageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'shop' })
-  return { title: t('title') }
+  const title = `${t('title')} · RT Bunker`
+  const description =
+    'Todas las pegatinas y vinilos para coche de RT Bunker: más de 120 diseños en vinilo premium, fabricados en España y con envío en 24-72 h.'
+  return {
+    title,
+    description,
+    alternates: { canonical: `/${locale}/tienda` },
+    ...shareMetadata({ title, description, path: `/${locale}/tienda` }),
+  }
 }
 
 export default async function ShopPage({ params, searchParams }: ShopPageProps) {

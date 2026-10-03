@@ -78,7 +78,14 @@
   .lead { font-size: 18px; color: var(--muted); max-width: 60ch; }
   a { color: inherit; }
 
-  header.hero { padding: 78px 0 26px; }
+  header.hero { padding: 64px 0 26px; }
+  .brandlogo { display: block; height: 30px; width: auto; margin-bottom: 30px; }
+  .brandlogo.on-dark { display: none; }
+  @media (prefers-color-scheme: dark) { .brandlogo.on-light { display: none; } .brandlogo.on-dark { display: block; } }
+  :root[data-theme="light"] .brandlogo.on-light { display: block; }
+  :root[data-theme="light"] .brandlogo.on-dark { display: none; }
+  :root[data-theme="dark"] .brandlogo.on-light { display: none; }
+  :root[data-theme="dark"] .brandlogo.on-dark { display: block; }
   .badge {
     display: inline-flex; align-items: center; gap: 9px;
     font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em;
@@ -210,18 +217,130 @@
     @keyframes rise { to { opacity: 1; transform: none; } }
   }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  /* ── Índice ───────────────────────────────────────────── */
+  .toc { display: grid; gap: 8px; margin-top: 30px; }
+  @media (min-width: 620px) { .toc { grid-template-columns: 1fr 1fr; } }
+  .toc a {
+    display: flex; align-items: baseline; gap: 12px; text-decoration: none;
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 11px;
+    padding: 11px 15px; font-size: 14.5px; font-weight: 600;
+  }
+  .toc a span { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent-deep); letter-spacing: 0.08em; }
+  @media (prefers-color-scheme: dark) { .toc a span { color: var(--accent); } }
+  :root[data-theme="dark"] .toc a span { color: var(--accent); }
+  :root[data-theme="light"] .toc a span { color: var(--accent-deep); }
+
+  /* ── Paso a paso ──────────────────────────────────────── */
+  .how {
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 22px 22px 20px; margin-bottom: 14px;
+  }
+  .how .tag {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 6px;
+    background: var(--accent-soft); color: var(--accent-deep); margin-bottom: 10px;
+  }
+  @media (prefers-color-scheme: dark) { .how .tag { color: var(--accent); } }
+  :root[data-theme="dark"] .how .tag { color: var(--accent); }
+  :root[data-theme="light"] .how .tag { color: var(--accent-deep); }
+  .how h3 { font-family: var(--font-body); font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+  .how > p { margin: 8px 0 0; font-size: 14.5px; color: var(--muted); }
+  .how ol { list-style: none; counter-reset: paso; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+  .how ol li {
+    counter-increment: paso; position: relative; padding-left: 40px;
+    font-size: 14.5px; line-height: 1.55; min-height: 28px;
+  }
+  .how ol li::before {
+    content: counter(paso); position: absolute; left: 0; top: -1px;
+    width: 27px; height: 27px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--text); color: var(--bg-2);
+    font-family: var(--font-display); font-weight: 800; font-size: 13px;
+  }
+  .ui {
+    font-weight: 700; white-space: nowrap;
+    background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px;
+    padding: 1px 7px; font-size: 13px;
+  }
+  .how .tip {
+    margin-top: 15px; padding-top: 13px; border-top: 1px dashed var(--border-2);
+    font-size: 13.5px; color: var(--muted);
+  }
+  .how .tip b { color: var(--text); }
+
+  /* ── Preguntas ────────────────────────────────────────── */
+  .qa { display: grid; gap: 12px; }
+  .qa > div {
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 17px 20px; box-shadow: var(--shadow);
+  }
+  .qa h3 { font-family: var(--font-body); font-size: 15.5px; font-weight: 700; }
+  .qa p { margin: 6px 0 0; font-size: 14.5px; color: var(--muted); }
+
+  .pend { color: var(--warn); font-weight: 700; }
+
+  /* ── Impresión / PDF ──────────────────────────────────── */
+  @page { size: A4; margin: 15mm 13mm 16mm; }
+  @media print {
+    :root {
+      --accent: #0a9d98; --accent-deep: #077a76; --accent-soft: rgba(10,157,152,0.10); --accent-line: rgba(10,157,152,0.30);
+      --bg: #ffffff; --bg-2: #ffffff; --bg-3: #f1f5f4; --border: #d8e1df; --border-2: #c7d2d0;
+      --text: #0f1e1c; --muted: #4a5b58; --ok: #1f9d6b; --warn: #a86a10; --shadow: none;
+    }
+    html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: #fff; font-size: 13.5px; }
+    .wrap { max-width: none; padding: 0; }
+    .reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+    header.hero { padding: 6mm 0 0; }
+    h1 { font-size: 50px; }
+    section { padding-top: 30px; }
+    .sec-head { margin-bottom: 16px; break-after: avoid; break-inside: avoid; }
+    #accesos { break-inside: avoid; }
+    .brandlogo { height: 26px; margin-bottom: 22px; }
+    .brandlogo.on-light { display: block !important; }
+    .brandlogo.on-dark { display: none !important; }
+    .no-print { display: none !important; }
+    h2, h3 { break-after: avoid; }
+    .card, .step, .how, .qa > div, .access, .note, .toc a { break-inside: avoid; }
+    .grid.two { grid-template-columns: 1fr 1fr; }
+    .grid.two.three { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid.three .card { padding: 13px 14px; }
+    .grid.three .card .ic { width: 32px; height: 32px; margin-bottom: 9px; }
+    .grid.three .card h3 { font-size: 15px; }
+    .grid.three .card p { font-size: 12px; }
+    .toc { grid-template-columns: 1fr 1fr; }
+    .access .row { grid-template-columns: 150px 1fr; gap: 6px 16px; align-items: baseline; padding: 10px 16px; }
+    .card { padding: 15px 16px; }
+    .card p, .how ol li, .how > p, .qa p, .step p { font-size: 12.8px; }
+    .how { padding: 17px 18px 15px; }
+    .pb { break-before: page; padding-top: 0; }
+    footer.foot { margin-top: 34px; }
+    a { text-decoration: none; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header class="hero">
-    <span class="badge"><span class="dot"></span> Web en producción · rtbunker.com</span>
+<img class="brandlogo on-light" src="logo-black.png" alt="RT Bunker" width="1166" height="188">
+    <img class="brandlogo on-dark" src="logo-white.png" alt="" aria-hidden="true" width="1166" height="188">
+    <span class="badge"><span class="dot"></span> Web publicada · rtbunker.com</span>
     <h1>Tu web,<br><span class="thin">por dentro.</span></h1>
-    <p class="lead">Una vuelta completa a RT Bunker: qué ve tu cliente en cada página, cómo compra, y cómo lo gestionas todo tú desde el panel de control. Sin tecnicismos.</p>
+    <p class="lead">La guía de RT Bunker: qué ve tu cliente en cada página, cómo compra y cómo lo gestionas todo desde el panel de control, paso a paso y sin tecnicismos.</p>
+
+    <nav class="toc" aria-label="Índice">
+      <a href="#web"><span>01</span> La web pública</a>
+      <a href="#compra"><span>02</span> Cómo compra un cliente</a>
+      <a href="#panel"><span>03</span> El panel de control</a>
+      <a href="#pasos"><span>04</span> Paso a paso: lo que harás a menudo</a>
+      <a href="#dudas"><span>05</span> Dudas frecuentes</a>
+      <a href="#accesos"><span>06</span> Accesos rápidos</a>
+    </nav>
   </header>
 
-  <section>
+  <section id="web">
     <div class="sec-head reveal">
       <p class="eyebrow">01 — Lo que ve tu cliente</p>
       <h2>La web pública</h2>
@@ -229,47 +348,46 @@
     </div>
 
     <div class="grid two">
-
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span>
         <h3>Inicio <span class="route">/</span></h3>
-        <p>La portada. Presenta la marca, lo más vendido, los servicios y las reseñas. Es el escaparate que decide si el visitante se queda.</p>
+        <p>La portada: las 8 categorías de <b>Shop stickers</b>, el bloque de pegatinas a medida («Tu idea»), el recorrido «Más que stickers» con los servicios, los productos destacados, la historia de la marca, las reseñas y las preguntas frecuentes.</p>
         <div class="use"><b>El cliente</b>Aterriza, entiende de qué va RT Bunker y salta a comprar o a personalizar.</div>
       </div>
 
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1 13H5L4 7Z"/><path d="M8.5 7a3.5 3.5 0 0 1 7 0"/></svg></span>
         <h3>Tienda <span class="route">/tienda</span></h3>
-        <p>El catálogo de pegatinas ya diseñadas y packs económicos, ordenados por categorías. Compra directa, sin esperas.</p>
-        <div class="use"><b>El cliente</b>Elige una pegatina, la añade al carrito y paga. Listo para enviar.</div>
+        <p>El catálogo completo: más de 120 pegatinas ya diseñadas, ordenadas por categorías y con buscador. En cada producto se elige estilo (color) y tamaño, y el precio cambia solo.</p>
+        <div class="use"><b>El cliente</b>Elige una pegatina, la añade al carrito y hace el pedido.</div>
       </div>
 
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg></span>
         <h3>Personalizadas <span class="route">/personalizadas</span></h3>
-        <p>El corazón de la web. El cliente elige el <b>tipo de producto</b> (vinilos, hojas de pegatinas…) y se abre el configurador: forma, tamaño, cantidad y acabado, con <b>precio al instante</b>.</p>
+        <p>El cliente elige el <b>tipo de producto</b> (vinilos viene ya seleccionado) y configura forma, tamaño, cantidad y acabado, con <b>precio al instante</b>. Debajo, las dudas resueltas en formato chat.</p>
         <div class="use"><b>El cliente</b>Configura su pegatina, sube su diseño y ve el precio antes de comprar.</div>
       </div>
 
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a3.5 3.5 0 0 0-4.9 4.9l-6 6L6 19.2l6-6a3.5 3.5 0 0 0 4.9-4.9l-2.1 2.1-1.8-1.8 1.7-2.3Z"/></svg></span>
         <h3>Servicios + Portfolio <span class="route">/servicios</span></h3>
-        <p>Los servicios de vehículo (full wrap, chrome delete, ahumado, rotulación…) y una <b>galería de trabajos reales</b> con pestañas por servicio. Al pulsar una foto se abre con título, descripción y carrusel.</p>
-        <div class="use"><b>El cliente</b>Ve trabajos ya hechos y gana confianza antes de pedir presupuesto.</div>
+        <p>Los servicios de taller (full wrap, chrome delete, ahumado, rotulación…), el proceso de trabajo paso a paso y una <b>galería de trabajos reales</b> con pestañas por servicio. Al pulsar una foto se abre con título, descripción y carrusel.</p>
+        <div class="use"><b>El cliente</b>Ve trabajos ya hechos y pide presupuesto por WhatsApp.</div>
       </div>
 
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 14.6 9l6 .5-4.6 3.9 1.5 5.9L12 16.9 6.5 19.3 8 13.4 3.4 9.5l6-.5L12 3.5Z"/></svg></span>
         <h3>RT Bunker Club <span class="route">/planes</span></h3>
-        <p>La suscripción con ventajas: el cliente paga una cuota y recibe <b>créditos</b> para gastar en pegatinas personalizadas, con prioridad de producción.</p>
-        <div class="use"><b>El cliente</b>Se suscribe y usa sus créditos en el configurador como si fuera saldo.</div>
+        <p>La suscripción con ventajas: una cuota mensual a cambio de <b>créditos</b> para pegatinas personalizadas, prioridad de producción y descuento en los pedidos.</p>
+        <div class="use"><b>A tener en cuenta</b>El alta en el Club se paga con tarjeta: quedará operativa cuando se active la pasarela de pago.</div>
       </div>
 
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.5 3.1-5.5 7-5.5s7 2 7 5.5"/></svg></span>
         <h3>Cuenta <span class="route">/cuenta</span></h3>
-        <p>La zona privada del cliente: sus pedidos, sus pegatinas personalizadas (con las pruebas para aprobar), su suscripción y sus direcciones.</p>
-        <div class="use"><b>El cliente</b>Sigue sus pedidos y aprueba las pruebas de diseño desde su móvil.</div>
+        <p>La zona privada del cliente: sus pedidos, sus pegatinas personalizadas (con los mockups para aprobar), su suscripción y sus direcciones.</p>
+        <div class="use"><b>El cliente</b>Sigue sus pedidos y aprueba los mockups desde el móvil.</div>
       </div>
 
       <div class="card reveal">
@@ -280,20 +398,24 @@
       </div>
 
       <div class="card reveal">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.4-7-10a7 7 0 0 1 7-7 7 7 0 0 1 7 7c0 5.6-7 10-7 10Z"/><path d="M9.5 10.5h5M12 8v5"/></svg></span>
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></span>
         <h3>Nosotros <span class="route">/nosotros</span></h3>
-        <p>La historia de Nikita y RT Bunker. El toque humano que convierte una tienda en una marca con la que la gente conecta.</p>
-        <div class="use"><b>El cliente</b>Conoce quién hay detrás y por qué fiarse.</div>
+        <p>La historia de RT Bunker y de quién hay detrás. El toque humano que convierte una tienda en una marca con la que la gente conecta.</p>
+        <div class="use"><b>El cliente</b>Conoce el taller y por qué fiarse.</div>
       </div>
+    </div>
 
+    <div class="note reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <div><b>Las direcciones de la web antigua siguen funcionando.</b> Quien entre desde un enlace viejo, desde Google o desde Instagram llega automáticamente al producto o la categoría equivalente de la web nueva.</div>
     </div>
   </section>
 
-  <section>
+  <section id="compra" class="pb">
     <div class="sec-head reveal">
       <p class="eyebrow">02 — De la visita a la venta</p>
       <h2>Cómo compra un cliente</h2>
-      <p>Tres recorridos reales. Todo el cobro es automático con <b>tarjeta (Stripe)</b> y <b>PayPal</b>.</p>
+      <p>Ahora mismo los pedidos se pagan por <b>transferencia bancaria</b>. Cuando el banco active la pasarela (Redsys) se añadirá el pago con tarjeta sin que tengas que hacer nada.</p>
     </div>
 
     <div class="flow">
@@ -301,92 +423,252 @@
         <div class="n">1</div>
         <div>
           <h3>Pegatina de catálogo</h3>
-          <p>Tienda → elige una pegatina o pack → carrito → paga → recibe email de confirmación. El pedido te aparece en el panel para prepararlo y enviarlo.</p>
+          <p>Tienda → elige estilo y tamaño → carrito → rellena sus datos de envío → confirma el pedido. En pantalla y por email recibe <b>tus datos bancarios</b> (titular, IBAN y banco), el importe exacto y el concepto que debe poner («Pedido #» y su número).</p>
           <span class="chip">Panel → Pedidos</span>
         </div>
       </div>
       <div class="step reveal">
         <div class="n">2</div>
         <div>
-          <h3>Pegatina personalizada</h3>
-          <p>Personalizadas → elige tipo → configura (forma, tamaño, cantidad, acabado) → ve el precio → sube su diseño → paga. El encargo llega a tu panel con el archivo, las medidas y la cantidad. Tú subes una <b>prueba</b>, el cliente la <b>aprueba</b> desde su cuenta, y a producción.</p>
-          <span class="chip">Panel → Pedidos personalizados</span>
+          <h3>Pegatina con texto propio</h3>
+          <p>En productos como la <b>Pegatina Instagram</b> aparece una casilla donde el cliente escribe su texto (por ejemplo, su usuario). Ese texto viaja con el pedido y lo ves en el panel, dentro del pedido, en el bloque «Textos personalizados».</p>
+          <span class="chip">Panel → Pedidos → Textos personalizados</span>
         </div>
       </div>
       <div class="step reveal">
         <div class="n">3</div>
         <div>
-          <h3>Suscripción al Club</h3>
-          <p>Planes → se suscribe → cada ciclo recibe créditos → los gasta en el configurador con prioridad. Fidelización e ingresos recurrentes.</p>
-          <span class="chip">Panel → Club / Membresías</span>
+          <h3>Pegatina personalizada (a medida)</h3>
+          <p>Personalizadas → configura forma, tamaño, cantidad y acabado → ve el precio → sube su diseño → hace el pedido. El encargo llega a tu panel con el archivo, las medidas y la cantidad. Subes un <b>mockup</b> de cómo quedará, el cliente lo <b>aprueba</b> desde su cuenta, y a producción.</p>
+          <span class="chip">Panel → Personalizadas</span>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="n">4</div>
+        <div>
+          <h3>Tú cobras y envías</h3>
+          <p>El pedido entra como <b>pendiente de pago</b>. Cuando veas la transferencia en tu banco, lo marcas como cobrado en el panel, lo preparas y lo marcas como enviado: el cliente recibe un email en cada paso.</p>
+          <span class="chip">Ver «Cobrar un pedido por transferencia» más abajo</span>
         </div>
       </div>
     </div>
   </section>
 
-  <section>
+  <section id="panel" class="pb">
     <div class="sec-head reveal">
       <p class="eyebrow">03 — Tu centro de mando</p>
       <h2>El panel de control</h2>
-      <p>Todo se gestiona desde un único panel privado (Medusa). Sin tocar código: creas productos, ves pedidos y publicas tu portfolio tú misma.</p>
+      <p>Todo se gestiona desde un único panel privado. Sin tocar código: publicas productos, cobras y envías pedidos, subes trabajos al portfolio y cambias textos de la web por tu cuenta.</p>
     </div>
 
     <div class="access reveal" style="margin-bottom:16px">
-      <div class="row"><span class="k">Panel</span><span class="v"><a href="https://api.rtbunker.com/app" target="_blank" rel="noopener">api.rtbunker.com/app</a></span></div>
-      <div class="row"><span class="k">Acceso</span><span class="v">Entra con tu email y tu contraseña de administrador.</span></div>
+      <div class="row"><span class="k">Dirección</span><span class="v"><a href="https://api.rtbunker.com/app" target="_blank" rel="noopener">api.rtbunker.com/app</a></span></div>
+      <div class="row"><span class="k">Usuario</span><span class="v"><span class="mono">info@rtbunker.com</span></span></div>
+      <div class="row"><span class="k">Contraseña</span><span class="v">Te la envío aparte por privado. <small>No la compartas ni la dejes escrita en sitios públicos.</small></span></div>
     </div>
 
-    <div class="grid two">
+    <p class="reveal" style="color:var(--muted);font-size:14.5px;margin-bottom:14px">Al entrar verás el menú a la izquierda. Estas son sus secciones:</p>
+
+    <div class="grid two three">
       <div class="card reveal">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5 11 4l9 4.5-9 4.5-7-4.5Z"/><path d="M4 8.5V16l7 4 9-4.5V8.5"/></svg></span>
-        <h3>Productos</h3>
-        <p>Crea y edita pegatinas: nombre, precio, stock, fotos y categoría. Publica o retira artículos con un clic.</p>
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a8.5 8.5 0 1 1 16 0"/><path d="m12 14 4-5"/><circle cx="12" cy="14" r="1.4"/></svg></span>
+        <h3>Dashboard</h3>
+        <p>El resumen del negocio de un vistazo: ventas, pedidos recientes, encargos personalizados y socios del Club.</p>
       </div>
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4z"/><path d="M4 7l2-3h12l2 3M9 11h6"/></svg></span>
         <h3>Pedidos</h3>
-        <p>Cada compra con su estado: pagado, en preparación, enviado. Los datos de envío y la factura, a mano.</p>
+        <p>Cada compra con sus artículos, datos de envío y facturación, forma de pago y estado. Desde aquí cobras, preparas y envías.</p>
+      </div>
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5 11 4l9 4.5-9 4.5-7-4.5Z"/><path d="M4 8.5V16l7 4 9-4.5V8.5"/></svg></span>
+        <h3>Productos</h3>
+        <p>Todo el catálogo. Entra en un producto para cambiar nombre, descripción, fotos, precios, colores y tamaños, o para retirarlo de la tienda.</p>
+      </div>
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>
+        <h3>Publicar producto <span class="route">nuevo</span></h3>
+        <p>El formulario rápido para crear un producto nuevo en un minuto: nombre, fotos, precio, colores y tamaños. Es la forma recomendada de añadir productos.</p>
       </div>
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="17.5" r="2.5"/><path d="M8.5 8.3 20 19M8.5 15.7 20 5"/></svg></span>
-        <h3>Pedidos personalizados</h3>
-        <p>El diseño del cliente, medidas y cantidad, todo junto. Sube pruebas, el cliente las aprueba, y controlas el estado hasta producción.</p>
+        <h3>Personalizadas</h3>
+        <p>Los encargos a medida: el diseño del cliente, medidas y cantidad. Subes mockups, el cliente los aprueba y controlas el estado hasta producción.</p>
       </div>
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="1.6"/><path d="m5 17 4.5-4.5L13 16l3-3 3 3"/></svg></span>
-        <h3>Portafolio <span class="route" style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">nuevo</span></h3>
-        <p>Añade tus trabajos tú misma: eliges el servicio, pones título y descripción, subes las fotos y aparecen al instante en la web, en Servicios.</p>
+        <h3>Portafolio</h3>
+        <p>Tus trabajos de taller: eliges el servicio, pones título y descripción, subes las fotos y aparecen en la página de Servicios.</p>
       </div>
       <div class="card reveal">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l2.3 4.9 5.2.5-3.9 3.5 1.2 5.3L12 15.9 7.2 18.7l1.2-5.3-3.9-3.5 5.2-.5L12 4Z"/></svg></span>
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/><path d="m14 7 3 3"/></svg></span>
+        <h3>Contenido web <span class="route">nuevo</span></h3>
+        <p>Cambia lo que se lee en la web sin llamar a nadie: los <b>servicios</b>, los pasos del <b>proceso</b> y las categorías de <b>Shop stickers</b> de la portada.</p>
+      </div>
+      <div class="card reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 14.6 9l6 .5-4.6 3.9 1.5 5.9L12 16.9 6.5 19.3 8 13.4 3.4 9.5l6-.5L12 3.5Z"/></svg></span>
         <h3>Reseñas</h3>
-        <p>Las valoraciones de clientes pasan por tu aprobación antes de publicarse. Tú decides qué se ve.</p>
+        <p>Las valoraciones de clientes pasan por tu aprobación antes de publicarse, y puedes responderlas públicamente.</p>
       </div>
       <div class="card reveal">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l4 3 4-6 4 6 4-3-1.5 10H5.5L4 8Z"/></svg></span>
-        <h3>Club / Membresías</h3>
-        <p>Tus suscriptores, su estado y sus créditos. Ingresos recurrentes bajo control.</p>
+        <h3>RT Bunker Club</h3>
+        <p>Tus socios, su plan, su estado y sus créditos.</p>
       </div>
     </div>
 
-    <div class="note reveal">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-      <div><b>Consejo:</b> guarda el enlace del panel en favoritos. Todo lo que cambies ahí se refleja en la web al momento, sin llamar a nadie.</div>
+    <div class="note reveal no-print">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <div><b>Consejo:</b> guarda la dirección del panel en favoritos. Lo que cambies se ve en la web en uno o dos minutos, sin avisar a nadie.</div>
     </div>
   </section>
 
-  <section>
+  <section id="pasos">
     <div class="sec-head reveal">
-      <p class="eyebrow">04 — Para tener a mano</p>
+      <p class="eyebrow">04 — Paso a paso</p>
+      <h2>Lo que harás a menudo</h2>
+      <p>Los nombres en <span class="ui">recuadro</span> son los botones y apartados tal y como aparecen en el panel.</p>
+    </div>
+
+    <div class="how reveal">
+      <span class="tag">Productos</span>
+      <h3>Publicar un producto nuevo</h3>
+      <p>La vía rápida. El producto sale a la venta en cuanto pulsas el botón.</p>
+      <ol>
+        <li>En el menú, entra en <span class="ui">Publicar producto</span>. El formulario va por pasos numerados, de arriba abajo.</li>
+        <li><b>Fotos:</b> arrástralas o selecciónalas. La primera es la principal.</li>
+        <li><b>Nombre y descripción:</b> el <span class="ui">Nombre del producto</span> y un texto que cuente material, acabado y para qué sirve.</li>
+        <li><b>Categorías:</b> búscala escribiendo (por ejemplo, BMW o Parasoles) y márcala.</li>
+        <li><b>Precio:</b> en <span class="ui">Precio (€)</span>, con coma o punto: 5,99.</li>
+        <li><b>Tamaños y colores:</b> si los tiene, actívalos, escribe cada uno y pulsa Intro. Se crean solas todas las combinaciones, y cada tamaño puede llevar su propio precio.</li>
+        <li><b>Texto del cliente:</b> actívalo si el cliente tiene que escribir algo (su nombre, su usuario…) e indica qué se le pregunta.</li>
+        <li>Abajo verás el resumen de lo que se va a crear. Pulsa <span class="ui">Publicar</span> para ponerlo a la venta, o <span class="ui">Guardar borrador</span> para dejarlo oculto y revisarlo luego.</li>
+      </ol>
+      <div class="tip"><b>Fotos:</b> mejor en vertical u horizontal bien encuadradas, en JPG o PNG, y de menos de 2 MB para que la web cargue rápido.</div>
+    </div>
+
+    <div class="how reveal">
+      <span class="tag">Productos</span>
+      <h3>Editar un producto que ya existe</h3>
+      <p>Para cambiar el nombre, las fotos, el precio o retirarlo de la venta.</p>
+      <ol>
+        <li>Entra en <span class="ui">Productos</span> y pulsa el producto (arriba hay un buscador).</li>
+        <li><b>Nombre y descripción:</b> en el primer bloque, pulsa los tres puntos <span class="ui">···</span> → <span class="ui">Editar</span>.</li>
+        <li><b>Fotos:</b> en el bloque <span class="ui">Medios</span>, tres puntos → <span class="ui">Editar</span>. Arrastra las nuevas, borra las que sobren y elige cuál es la miniatura.</li>
+        <li><b>Precios:</b> en el bloque <span class="ui">Variantes</span>, tres puntos → <span class="ui">Editar precios</span>. Se abre una tabla como una hoja de cálculo: cambia la columna EUR y guarda.</li>
+        <li><b>Un color o tamaño nuevo:</b> en <span class="ui">Opciones</span> añade el valor y luego en <span class="ui">Variantes</span> pulsa <span class="ui">Crear</span> para darle precio.</li>
+        <li><b>Retirarlo de la tienda sin borrarlo:</b> en <span class="ui">Editar</span>, cambia el estado de Publicado a Borrador. Para volver a venderlo, ponlo otra vez en Publicado.</li>
+      </ol>
+      <div class="tip"><b>«Disponible en 0 ubicaciones»</b> en la columna Inventario es normal y no afecta a la venta: fabricas bajo pedido, así que la web no lleva control de stock y todas las variantes se pueden comprar siempre.</div>
+    </div>
+
+    <div class="how reveal">
+      <span class="tag">Productos</span>
+      <h3>Pedir un texto al cliente (Pegatina Instagram y similares)</h3>
+      <p>Para cualquier producto que lleve el nombre o el usuario del cliente.</p>
+      <ol>
+        <li>Entra en el producto desde <span class="ui">Productos</span> y baja hasta el final de la página.</li>
+        <li>En el bloque <span class="ui">Texto personalizado</span>, pulsa para activarlo.</li>
+        <li>Rellena la <span class="ui">Pregunta que verá el cliente</span> (ej. «Tu usuario de Instagram»), el <span class="ui">Ejemplo en gris</span> que sale dentro de la casilla (ej. «@tuusuario») y el <span class="ui">Máximo de letras</span>.</li>
+        <li>Marca <span class="ui">¿Obligatorio?</span> si no se puede fabricar sin ese texto, y guarda.</li>
+      </ol>
+      <div class="tip">El texto que escriba cada cliente aparece en el carrito, en el email del pedido y, en el panel, dentro del pedido en el bloque <b>Textos personalizados</b>.</div>
+    </div>
+
+    <div class="how reveal">
+      <span class="tag">Pedidos</span>
+      <h3>Cobrar un pedido por transferencia</h3>
+      <p>El pedido llega al panel en cuanto el cliente lo confirma, pero todavía sin cobrar.</p>
+      <ol>
+        <li>Abre el pedido en <span class="ui">Pedidos</span> y apunta su número y el total.</li>
+        <li>Comprueba en tu banco que ha llegado la transferencia: el importe debe coincidir y el concepto será «Pedido #» seguido del número.</li>
+        <li>En el bloque <span class="ui">Pagos</span>, pulsa <span class="ui">Capturar pago</span> y confirma. El pedido pasa a pagado.</li>
+        <li>Ya puedes fabricarlo y enviarlo (siguiente paso).</li>
+      </ol>
+      <div class="tip"><b>Si pasan los días y no llega el dinero</b>, escribe al cliente (su email y teléfono están en el pedido). Si no va a pagar, puedes cancelar el pedido desde los tres puntos de arriba.</div>
+    </div>
+
+    <div class="how reveal">
+      <span class="tag">Pedidos</span>
+      <h3>Preparar y enviar un pedido</h3>
+      <p>El cliente recibe un email cuando lo marcas como enviado.</p>
+      <ol>
+        <li>Dentro del pedido, en el bloque de preparación, pulsa <span class="ui">Cumplir artículos</span> y confirma lo que vas a enviar.</li>
+        <li>Cuando salga el paquete, pulsa <span class="ui">Marcar como enviado</span> y pega el <b>número de seguimiento</b> de la agencia.</li>
+        <li>Cuando te conste la entrega, <span class="ui">Marcar como entregado</span>.</li>
+      </ol>
+    </div>
+
+    <div class="how reveal">
+      <span class="tag">Personalizadas</span>
+      <h3>Gestionar un encargo a medida</h3>
+      <p>Todo el ida y vuelta con el cliente queda registrado en el encargo.</p>
+      <ol>
+        <li>Entra en <span class="ui">Personalizadas</span> y abre el encargo: verás los datos del cliente y la configuración (forma, material, tamaño, unidades y precio), además del diseño que subió.</li>
+        <li>Sube el <b>mockup</b> (el montaje de cómo quedará) con <span class="ui">Subir mockup</span>; puedes añadir unas notas, que le llegan al cliente en el email.</li>
+        <li>El cliente lo <b>aprueba</b> o pide cambios desde su cuenta. Si pide cambios, usa <span class="ui">Subir nueva versión</span>.</li>
+        <li>Con el mockup aprobado, cambia el <span class="ui">Estado del pedido</span> a producción y, al terminar, a enviado.</li>
+      </ol>
+    </div>
+
+    <div class="how reveal">
+      <span class="tag">Portafolio</span>
+      <h3>Añadir un trabajo al portfolio</h3>
+      <p>Los trabajos aparecen en la página de Servicios, en la pestaña de su servicio.</p>
+      <ol>
+        <li>Entra en <span class="ui">Portafolio</span> y pulsa <span class="ui">Crear trabajo</span>.</li>
+        <li>Elige el <span class="ui">Servicio</span> (full wrap, chrome delete…) y escribe el <span class="ui">Título</span>, por ejemplo «BMW M4 Full Wrap mate».</li>
+        <li>Si quieres, añade <span class="ui">Coche</span>, <span class="ui">Materiales</span>, <span class="ui">Fecha</span> y una <span class="ui">Descripción</span> del trabajo.</li>
+        <li>Sube las fotos en <span class="ui">Fotos del trabajo</span>. Con varias fotos se monta un carrusel.</li>
+        <li>Guarda. Para cambiar el orden en que salen, usa el campo de orden: el número más bajo sale primero.</li>
+      </ol>
+    </div>
+
+    <div class="how reveal">
+      <span class="tag">Contenido web</span>
+      <h3>Cambiar textos de la web</h3>
+      <p>Tres pestañas, cada una controla un trozo de la web.</p>
+      <ol>
+        <li>Entra en <span class="ui">Contenido web</span>.</li>
+        <li><b>Pestaña <span class="ui">Servicios</span>:</b> las tarjetas de servicios (título, descripción, puntos, icono y botón). Añade, edita o borra.</li>
+        <li><b>Pestaña <span class="ui">Proceso</span>:</b> los pasos de «cómo trabajamos» de la página de Servicios.</li>
+        <li><b>Pestaña <span class="ui">Shop stickers</span>:</b> qué categorías salen en la portada y en qué orden. Caben 8 (dos filas de 4).</li>
+        <li>Guarda y espera uno o dos minutos para verlo en la web.</li>
+      </ol>
+      <div class="tip"><b>Reseñas:</b> en el apartado Reseñas apruebas las que quieras publicar y puedes contestarlas; las no aprobadas no se ven en la web.</div>
+    </div>
+  </section>
+
+  <section id="dudas" class="pb">
+    <div class="sec-head reveal">
+      <p class="eyebrow">05 — Por si acaso</p>
+      <h2>Dudas frecuentes</h2>
+    </div>
+    <div class="qa">
+      <div class="reveal"><h3>He cambiado algo y no lo veo en la web</h3><p>La web tarda uno o dos minutos en actualizarse. Recarga la página pasado ese tiempo. Las categorías del menú pueden tardar hasta una hora.</p></div>
+      <div class="reveal"><h3>En los productos pone «disponible en 0 ubicaciones» en rojo</h3><p>Es normal. La tienda no controla stock porque fabricas bajo pedido: todos los productos se pueden comprar siempre. No hay que tocar nada del inventario.</p></div>
+      <div class="reveal"><h3>¿Los precios llevan IVA?</h3><p>Los precios que pones en el panel son los que se guardan tal cual, en euros (5,99 es 5,99 €). El IVA se calcula en el pedido. <span class="pend">Pendiente de confirmar contigo</span> si los precios del catálogo ya incluían IVA, para ajustarlo.</p></div>
+      <div class="reveal"><h3>¿Cuándo se podrá pagar con tarjeta?</h3><p>En cuanto el banco active la pasarela Redsys. Mientras tanto, todos los pedidos van por transferencia y los datos bancarios se muestran solos al cliente.</p></div>
+      <div class="reveal"><h3>Quiero borrar un producto</h3><p>Mejor pásalo a <b>Borrador</b>: desaparece de la tienda pero conservas fotos, precios y el historial de pedidos. Borrarlo es definitivo.</p></div>
+      <div class="reveal"><h3>Un producto tiene muchísimas variantes</h3><p>Es lo esperado: cada combinación de color y tamaño es una variante (19 colores × 15 tamaños = 285). Para cambiar precios usa «Editar precios», que los muestra todos en una tabla.</p></div>
+      <div class="reveal"><h3>Algo no funciona o tengo una duda</h3><p>Escribe a Antonio (Bellostas Studio) con una captura de pantalla de lo que ves y la dirección de la página.</p></div>
+    </div>
+  </section>
+
+  <section id="accesos">
+    <div class="sec-head reveal">
+      <p class="eyebrow">06 — Para tener a mano</p>
       <h2>Accesos rápidos</h2>
     </div>
     <div class="access reveal">
       <div class="row"><span class="k">Web pública</span><span class="v"><a href="https://rtbunker.com" target="_blank" rel="noopener">rtbunker.com</a></span></div>
       <div class="row"><span class="k">Panel de control</span><span class="v"><a href="https://api.rtbunker.com/app" target="_blank" rel="noopener">api.rtbunker.com/app</a></span></div>
-      <div class="row"><span class="k">Acceso panel</span><span class="v">Con tu email y contraseña de administrador</span></div>
+      <div class="row"><span class="k">Usuario del panel</span><span class="v"><span class="mono">info@rtbunker.com</span> <small>· contraseña enviada por privado</small></span></div>
+      <div class="row"><span class="k">Cobros</span><span class="v">Transferencia bancaria (Laboral Kutxa) · tarjeta con Redsys, próximamente</span></div>
       <div class="row"><span class="k">WhatsApp</span><span class="v"><span class="mono">+34 624 69 04 89</span></span></div>
+      <div class="row"><span class="k">Instagram</span><span class="v"><span class="mono">@rtbunker_</span></span></div>
       <div class="row"><span class="k">Taller</span><span class="v">Calle Aneto 15, Nave A6 · 50410 Cuarte de Huerva, Zaragoza</span></div>
-      <div class="row"><span class="k">Cobros</span><span class="v">Tarjeta (Stripe) y PayPal · automáticos</span></div>
+      <div class="row"><span class="k">Soporte</span><span class="v">Antonio · Bellostas Studio</span></div>
     </div>
   </section>
 

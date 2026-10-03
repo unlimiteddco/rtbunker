@@ -1,19 +1,48 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Anton, Inter, Montserrat } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { setRequestLocale, getMessages } from 'next-intl/server'
 import type { ReactNode } from 'react'
 
+const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://rtbunker.com').replace(/\/$/, '')
+
 /**
+ * Metadata por defecto de toda la web: título, descripción e imagen que sale
+ * al compartir un enlace. Las páginas la heredan y pisan solo lo que definan.
+ * El favicon y los iconos salen de los archivos `app/favicon.ico`,
+ * `app/icon.png` y `app/apple-icon.png`.
+ *
  * Staging/preview: con `NEXT_PUBLIC_SITE_NOINDEX=true` añade el meta
  * `robots: noindex, nofollow` a TODAS las páginas (las páginas no sobreescriben
  * `robots`, así que se hereda). En producción se quita la variable.
  */
-export const metadata: Metadata =
-  process.env.NEXT_PUBLIC_SITE_NOINDEX === 'true'
+export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
+  title: DEFAULT_TITLE,
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: {
+    siteName: SITE_NAME,
+    type: 'website',
+    locale: 'es_ES',
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
+  ...(process.env.NEXT_PUBLIC_SITE_NOINDEX === 'true'
     ? { robots: { index: false, follow: false } }
-    : {}
+    : {}),
+}
+
+/** Color de la barra del navegador en móvil: el carbón de la cabecera. */
+export const viewport: Viewport = { themeColor: '#0f0f0f' }
 
 import { MiniCartDrawer } from '@/components/cart/mini-cart-drawer'
 import { Footer } from '@/components/layout/footer'
@@ -25,6 +54,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { locales } from '@/i18n/config'
 import { routing } from '@/i18n/routing'
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, OG_IMAGE, SITE_NAME } from '@/lib/seo'
 
 // Display: tall condensed caps — usado en hero / display names.
 const anton = Anton({

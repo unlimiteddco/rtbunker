@@ -17,6 +17,7 @@ import { getCurrentCustomer } from '@/lib/auth'
 import { getProductByHandle } from '@/lib/products'
 import { listRelatedProducts } from '@/lib/related'
 import { getProductReviews } from '@/lib/reviews'
+import { plainDescription, shareMetadata } from '@/lib/seo'
 
 export const revalidate = 60
 
@@ -28,15 +29,18 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const { locale, handle } = await params
   const { product } = await getProductByHandle(handle, locale)
   if (!product) return {}
+  const title = `${product.title} · RT Bunker`
+  const description = plainDescription(product.description ?? product.subtitle)
   return {
-    title: product.title,
-    description: product.description ?? product.subtitle ?? undefined,
-    openGraph: {
-      title: product.title,
-      description: product.description ?? undefined,
-      images: product.thumbnail ? [{ url: product.thumbnail }] : [],
-      type: 'website',
-    },
+    title,
+    ...(description ? { description } : {}),
+    // Al compartir un producto sale SU foto; sin foto, la imagen de la marca.
+    ...shareMetadata({
+      title,
+      description,
+      path: `/${locale}/producto/${handle}`,
+      image: product.thumbnail,
+    }),
     alternates: {
       canonical: `${env.NEXT_PUBLIC_BASE_URL}/${locale}/producto/${handle}`,
     },
