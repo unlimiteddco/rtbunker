@@ -349,7 +349,7 @@ export const orderPlacedAdminTemplate = (order: {
       `<p style="margin:0 0 6px;">Ha entrado un pedido nuevo.</p>
        ${
          order.is_bank_transfer
-           ? `<p style="margin:0 0 14px; padding:10px 14px; border-radius:10px; background:#fff6e0; font-size:14px; color:${BRAND.carbon};"><strong>Pago por transferencia — PENDIENTE.</strong> No lo prepares hasta recibir el ingreso con concepto "Pedido #${order.display_id}". Después, en el admin: pedido → Pago → <em>Capturar</em>.</p>`
+           ? `<p style="margin:0 0 14px; padding:10px 14px; border-radius:10px; background:#fff6e0; font-size:14px; color:${BRAND.carbon};"><strong>Pago por transferencia — PENDIENTE.</strong> No lo prepares hasta recibir el ingreso con concepto "Pedido #${order.display_id}". Cuando llegue, abre el pedido en el panel y pulsa <em>Marcar como cobrado</em>.</p>`
            : ''
        }
        <p style="margin:0 0 22px; font-size:14px; color:${BRAND.ink};"><strong>Cliente:</strong> ${customer}</p>
@@ -376,18 +376,33 @@ export const orderShippedTemplate = (order: {
   tracking_numbers?: string[]
   carrier?: string
 }) => {
-  const tracking = order.tracking_numbers?.length
-    ? `<p>Número(s) de seguimiento: <strong>${order.tracking_numbers.join(', ')}</strong></p>`
+  const base = storeBase()
+  const numbers = (order.tracking_numbers ?? []).filter(Boolean)
+  // `carrier` es el nombre del método de envío elegido (p. ej. "Estándar 24-72 h").
+  const shipping = order.carrier
+    ? `<p style="margin:0 0 4px; font-size:14px; font-weight:600; color:${BRAND.carbon};">${escapeHtml(order.carrier)}</p>`
     : ''
-  const carrier = order.carrier ? `<p>Transportista: ${order.carrier}</p>` : ''
+  const tracking = numbers.length
+    ? `<div style="margin:0 0 22px; padding:14px 18px; background:${BRAND.paper}; border-left:3px solid ${BRAND.cyan}; border-radius:0 8px 8px 0;">
+         <p style="margin:0 0 6px; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:${BRAND.muted};">Seguimiento</p>
+         ${shipping}
+         <p style="margin:0; font-family:'SFMono-Regular',Menlo,Consolas,monospace; font-size:14px; color:${BRAND.carbon};">${numbers.map(escapeHtml).join('<br />')}</p>
+       </div>`
+    : ''
   return {
     subject: `Tu pedido #${order.display_id} está en camino`,
     html: wrap(
       `Tu pedido va de camino`,
-      `<p>Hemos enviado tu pedido <strong>#${order.display_id}</strong>.</p>${tracking}${carrier}`,
+      `<p style="margin:0 0 18px;">Acabamos de entregar tu pedido <strong>#${order.display_id}</strong> al transportista.
+       Suele llegar en 24-72 h laborables.</p>
+       ${tracking}
+       <div style="margin:0 0 22px;">${button(`${base}/cuenta`, 'Ver mi pedido →')}</div>
+       <p style="margin:0; font-size:13px; color:${BRAND.muted};">Si surge algún problema con la entrega, responde a este email y lo resolvemos.</p>`,
+      { preheader: `Tu pedido #${order.display_id} ya ha salido del taller` },
     ),
   }
 }
+
 
 /**
  * Aviso al cliente cuando un pedido normal pasa a ENTREGADO. Tono cálido,
@@ -492,7 +507,7 @@ export const newsletterWelcomeTemplate = (data: {
          </a>
        </p>
        <p style="font-size:13px; color:#666;">
-         A partir de ahora te avisaremos de novedades, drops limitados y descuentos sin sobrecargar tu bandeja. Si quieres salir, hay un link de baja en cada email.
+         A partir de ahora te avisaremos de novedades, drops limitados y descuentos sin sobrecargar tu bandeja. Si quieres salir, responde a este email y te damos de baja.
        </p>
        <p style="margin-top:24px; font-size:12px; color:#999;">
          Te suscribiste con la dirección <strong>${data.email}</strong>.
@@ -680,7 +695,7 @@ export const customOrderResponseTemplate = (data: {
     html: wrap(
       title,
       `<p>Pedido <strong>${data.order_short_id}</strong> · ${data.customer_name ?? data.customer_email}</p>
-       <p>Mockup v${data.proof_version}: <a href="${data.proof_url}" target="_blank">ver imagen</a></p>
+       <p>Mockup v${data.proof_version}: <a href="${data.proof_url}" target="_blank" style="color:${BRAND.cyanDeep}; font-weight:600;">ver imagen</a></p>
        ${customerNotesBlock}
        ${nextStepBlock}
        ${cta}`,
