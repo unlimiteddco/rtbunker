@@ -14,6 +14,8 @@ export interface OrderLite {
   email?: string | null
   payment_status?: string
   fulfillment_status?: string
+  status?: string
+  metadata?: Record<string, unknown> | null
   items?: { id: string; quantity: number }[]
 }
 

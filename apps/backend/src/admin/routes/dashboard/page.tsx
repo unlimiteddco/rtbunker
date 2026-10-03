@@ -51,6 +51,36 @@ interface MembershipsSummaryResponse {
   arr: number
 }
 
+/** Estados de pago en los que un pedido por transferencia sigue sin cobrar. */
+const UNPAID_STATUSES = ['not_paid', 'awaiting', 'authorized', 'partially_authorized', 'requires_action']
+
+/** `order.metadata.payment_method` de los pedidos pagados por transferencia. */
+const BANK_TRANSFER_METHOD = 'bank_transfer'
+
+const PAYMENT_LABELS: Record<string, string> = {
+  not_paid: 'Sin cobrar',
+  awaiting: 'Sin cobrar',
+  authorized: 'Sin cobrar',
+  partially_authorized: 'Sin cobrar',
+  requires_action: 'Sin cobrar',
+  captured: 'Cobrado',
+  partially_captured: 'Cobrado en parte',
+  refunded: 'Reembolsado',
+  partially_refunded: 'Reembolsado en parte',
+  canceled: 'Cancelado',
+}
+
+const FULFILLMENT_LABELS: Record<string, string> = {
+  not_fulfilled: 'Sin preparar',
+  partially_fulfilled: 'Preparado en parte',
+  fulfilled: 'Preparado',
+  partially_shipped: 'Enviado en parte',
+  shipped: 'Enviado',
+  partially_delivered: 'Entregado en parte',
+  delivered: 'Entregado',
+  canceled: 'Cancelado',
+}
+
 const PENDING_CUSTOM_STATUSES = ['pending_review', 'awaiting_changes', 'proof_sent'] as const
 const READY_TO_SHIP_STATUSES = ['approved', 'in_production'] as const
 
@@ -72,7 +102,7 @@ const DashboardPage = () => {
           // El filtro Medusa para fechas usa el operador $gte como subpath.
           'created_at[$gte]': ninetyDaysAgo,
           fields:
-            'id,display_id,total,currency_code,email,created_at,payment_status,fulfillment_status,items.id,items.quantity',
+            'id,display_id,status,metadata,total,currency_code,email,created_at,payment_status,fulfillment_status,items.id,items.quantity',
         },
       }),
   })
@@ -105,6 +135,22 @@ const DashboardPage = () => {
   const billedTotal = useMemo(() => totalRevenue(orders), [orders])
 
   const recentOrders = useMemo(() => orders.slice(0, 8), [orders])
+
+  // Transferencias sin cobrar. El estado de pago es un valor calculado por
+  // Medusa y no se puede filtrar en la consulta, así que se filtra sobre los
+  // pedidos ya cargados (últimos 90 días), de más antiguo a más reciente.
+  const unpaidTransfers = useMemo(
+    () =>
+      orders
+        .filter(
+          (o) =>
+            o.status !== 'canceled' &&
+            o.metadata?.payment_method === BANK_TRANSFER_METHOD &&
+            UNPAID_STATUSES.includes(o.payment_status ?? ''),
+        )
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+    [orders],
+  )
 
   const pendingCustomOrders = useMemo(
     () =>
@@ -148,6 +194,9 @@ const DashboardPage = () => {
           </Text>
         </div>
       </Container>
+
+      {/* ─── Transferencias por cobrar ──────────────────────────── */}
+      <UnpaidTransfersBlock orders={unpaidTransfers} />
 
       {/* ─── KPIs ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-3 px-1 md:grid-cols-2 xl:grid-cols-4">
@@ -301,6 +350,68 @@ function TierStat({
   )
 }
 
+// ─── Transferencias por cobrar ───────────────────────────────────────
+
+const daysSince = (iso: string) =>
+  Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000))
+
+function UnpaidTransfersBlock({ orders }: { orders: OrderLite[] }) {
+  const total = orders.reduce((acc, o) => acc + (Number(o.total) || 0), 0)
+
+  return (
+    <Container className="divide-y p-0">
+      <div className="flex items-center justify-between px-6 py-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <Heading level="h2">Transferencias por cobrar</Heading>
+            <Badge size="2xsmall" color={orders.length > 0 ? 'orange' : 'green'}>
+              {orders.length}
+            </Badge>
+          </div>
+          <Text size="small" leading="compact" className="text-ui-fg-subtle">
+            {orders.length === 0
+              ? 'No hay ningún pedido esperando transferencia.'
+              : `${formatMoney(total)} pendientes. Cuando veas el ingreso en el banco, entra en el pedido y pulsa «Marcar como cobrado».`}
+          </Text>
+        </div>
+      </div>
+
+      {orders.length > 0 ? (
+        <ul className="divide-y">
+          {orders.map((o) => {
+            const days = daysSince(o.created_at)
+            return (
+              <li key={o.id}>
+                <Link
+                  to={`/orders/${o.id}`}
+                  className="hover:bg-ui-bg-base-hover flex items-center justify-between gap-4 px-6 py-3 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Text size="small" leading="compact" weight="plus">
+                        Pedido #{o.display_id ?? o.id.slice(-6).toUpperCase()}
+                      </Text>
+                      <Badge size="2xsmall" color={days >= 5 ? 'red' : 'orange'}>
+                        {days === 0 ? 'Hoy' : days === 1 ? 'Hace 1 día' : `Hace ${days} días`}
+                      </Badge>
+                    </div>
+                    <Text size="small" leading="compact" className="text-ui-fg-subtle truncate">
+                      {o.email ?? 'Invitado'}
+                    </Text>
+                  </div>
+                  <Text size="small" leading="compact" weight="plus" className="tabular-nums">
+                    {formatMoney(o.total, o.currency_code)}
+                  </Text>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      ) : null}
+    </Container>
+  )
+}
+
 // ─── Recent orders block ─────────────────────────────────────────────
 
 function RecentOrdersBlock({ orders }: { orders: OrderLite[] }) {
@@ -348,12 +459,12 @@ function RecentOrdersBlock({ orders }: { orders: OrderLite[] }) {
                         size="2xsmall"
                         color={o.payment_status === 'captured' ? 'green' : 'orange'}
                       >
-                        {o.payment_status}
+                        {PAYMENT_LABELS[o.payment_status] ?? o.payment_status}
                       </Badge>
                     ) : null}
                     {o.fulfillment_status && o.fulfillment_status !== 'not_fulfilled' ? (
                       <Badge size="2xsmall" color="blue">
-                        {o.fulfillment_status}
+                        {FULFILLMENT_LABELS[o.fulfillment_status] ?? o.fulfillment_status}
                       </Badge>
                     ) : null}
                   </div>

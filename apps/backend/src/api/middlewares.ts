@@ -7,6 +7,7 @@ import { serviceItemAdminMiddlewares } from './admin/service-items/middlewares'
 import { processStepAdminMiddlewares } from './admin/process-steps/middlewares'
 import { featuredCategoryAdminMiddlewares } from './admin/featured-categories/middlewares'
 import { quickProductAdminMiddlewares } from './admin/quick-product/middlewares'
+import { priceTableAdminMiddlewares } from './admin/price-tables/middlewares'
 import { storeCustomOrderMiddlewares } from './store/custom-orders/middlewares'
 import { newsletterMiddlewares } from './store/newsletter/middlewares'
 import { storePortfolioMiddlewares } from './store/portfolio/middlewares'
@@ -34,6 +35,8 @@ export default defineMiddlewares({
     ...storeFeaturedCategoryMiddlewares,
     // Página admin "Publicar producto" (alta rápida de productos).
     ...quickProductAdminMiddlewares,
+    // Página admin "Precios por tamaño" (cambio de precios en bloque).
+    ...priceTableAdminMiddlewares,
     // Webhook de suscripciones Stripe: necesita el cuerpo crudo para verificar
     // la firma. `preserveRawBody` expone `req.rawBody`.
     {

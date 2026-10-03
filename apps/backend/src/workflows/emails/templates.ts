@@ -731,3 +731,28 @@ export const reviewRequestTemplate = (data: {
     ),
   }
 }
+
+/**
+ * Recuperar la contraseña del PANEL de administración. El enlace lleva al
+ * formulario de Medusa (`/app/reset-password`) con el token (caduca en 15 min).
+ */
+export const adminPasswordResetTemplate = (data: { email: string; reset_url: string }) => ({
+  subject: 'Cambia tu contraseña del panel de RT Bunker',
+  html: wrap(
+    'Nueva contraseña para el panel',
+    `<p style="margin:0 0 14px;">Hola,</p>
+     <p style="margin:0 0 22px;">Hemos recibido una solicitud para cambiar la contraseña del panel de
+     control de RT Bunker de la cuenta <strong style="color:${BRAND.carbon};">${escapeHtml(data.email)}</strong>.
+     Pulsa el botón y elige una nueva:</p>
+
+     <div style="margin:0 0 22px;">${button(data.reset_url, 'Elegir nueva contraseña →')}</div>
+
+     <p style="margin:0 0 6px; font-size:13px; color:${BRAND.muted};">El enlace caduca en 15 minutos.
+     Si el botón no funciona, copia esta dirección en el navegador:</p>
+     <p style="margin:0 0 22px; font-size:12px; word-break:break-all;"><a href="${data.reset_url}" style="color:${BRAND.cyanDeep};">${data.reset_url}</a></p>
+
+     <p style="margin:0; font-size:12px; color:${BRAND.muted};">Si no lo has pedido tú, ignora este email: tu contraseña
+     sigue siendo la misma.</p>`,
+    { preheader: 'Enlace para elegir una contraseña nueva del panel · caduca en 15 minutos' },
+  ),
+})
