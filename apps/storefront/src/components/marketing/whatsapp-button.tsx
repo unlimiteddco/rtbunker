@@ -9,8 +9,12 @@
  * inicial se puede personalizar con `NEXT_PUBLIC_WHATSAPP_TEXT`.
  *
  * Es un `<a>` plano (no el `Link` de i18n) porque wa.me es un destino externo.
- * En móvil sube a `bottom-24` para no solaparse con el cookie-banner inferior
- * (que es `z-[60]` y se ancla en `bottom-0`).
+ *
+ * Va pegado a la esquina inferior en todas las páginas. Solo sube en móvil
+ * mientras está visible la barra fija de compra de la ficha de producto
+ * (`StickyMobileCta` marca `<html data-sticky-cta>`; la regla está en
+ * globals.css, `.wa-float`). Antes iba siempre alto por esa barra y en el
+ * resto de páginas quedaba flotando a media altura.
  */
 export function WhatsappButton() {
   const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
@@ -25,7 +29,7 @@ export function WhatsappButton() {
       target="_blank"
       rel="noreferrer noopener"
       aria-label="Contactar por WhatsApp"
-      className="fixed bottom-24 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition duration-200 hover:scale-105 hover:bg-[#1da851] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/60 focus-visible:ring-offset-2 md:bottom-5"
+      className="wa-float fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-[bottom,transform,background-color] duration-300 hover:scale-105 hover:bg-[#1da851] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/60 focus-visible:ring-offset-2"
     >
       <WhatsappIcon />
     </a>

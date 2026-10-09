@@ -53,6 +53,14 @@ export function StickyMobileCta({
 
   const show = scrolled && !ctaVisible
 
+  // Mientras la barra está a la vista, avisa al resto de la página (el botón
+  // flotante de WhatsApp sube para no quedar tapado; ver `.wa-float`).
+  useEffect(() => {
+    const root = document.documentElement
+    root.toggleAttribute('data-sticky-cta', show)
+    return () => root.removeAttribute('data-sticky-cta')
+  }, [show])
+
   function focusCta() {
     const el = document.querySelector<HTMLElement>(targetSelector)
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' })

@@ -470,3 +470,11 @@
     background-size: 56px 56px;
   }
 }
+
+/* Botón flotante de WhatsApp: en móvil sube solo mientras la barra fija de
+   compra de la ficha de producto está visible (la barra mide ~70 px). */
+@media (max-width: 767px) {
+  html[data-sticky-cta] .wa-float {
+    bottom: 5.5rem;
+  }
+}
