@@ -7,6 +7,7 @@ import { PersonalizadasClubCta } from '@/components/personalizadas/personalizada
 import { PersonalizadasHero } from '@/components/personalizadas/personalizadas-hero'
 import { PersonalizadasLogosMarquee } from '@/components/personalizadas/personalizadas-logos-marquee'
 import { PersonalizadasProductPicker } from '@/components/personalizadas/personalizadas-product-picker'
+import { getMarqueeItems, getProductTypeContent } from '@/lib/content-blocks'
 import { getMembership, isActiveMembership } from '@/lib/membership'
 import { getFeaturedReviews } from '@/lib/reviews'
 import { shareMetadata } from '@/lib/seo'
@@ -41,13 +42,21 @@ export default async function PersonalizadasPage({ params }: PersonalizadasPageP
 
   // Reseñas destacadas de la tienda para los testimonios (getFeaturedReviews
   // nunca lanza: devuelve [] si el backend falla).
-  const reviews = await getFeaturedReviews(8)
+  const [reviews, brands, productTypeContent] = await Promise.all([
+    getFeaturedReviews(8),
+    // Editables desde el panel (Contenido web); con respaldo si el backend falla.
+    getMarqueeItems(),
+    getProductTypeContent(),
+  ])
 
   return (
     <>
       <PersonalizadasHero />
-      <PersonalizadasLogosMarquee />
-      <PersonalizadasProductPicker availableCredits={availableCredits} />
+      <PersonalizadasLogosMarquee items={brands} />
+      <PersonalizadasProductPicker
+        availableCredits={availableCredits}
+        content={productTypeContent}
+      />
       <HomeTestimonials reviews={reviews} />
       <PersonalizadasAbout />
       {availableCredits > 0 ? null : <PersonalizadasClubCta />}

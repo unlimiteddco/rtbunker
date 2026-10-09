@@ -49,6 +49,19 @@ export const CreateQuickProductSchema = z.object({
     })
     .optional()
     .nullable(),
+  // Opciones que elige el cliente sin cambiar el precio (p. ej. la fuente).
+  // Se guardan en product.metadata.custom_choices; no crean variantes.
+  custom_choices: z
+    .array(
+      z.object({
+        label: z.string().trim().min(1).max(80),
+        options: z.array(z.string().trim().min(1).max(120)).min(2).max(30),
+        required: z.boolean().optional(),
+      }),
+    )
+    .max(6)
+    .optional()
+    .nullable(),
 })
 export type CreateQuickProductSchema = z.infer<typeof CreateQuickProductSchema>
 

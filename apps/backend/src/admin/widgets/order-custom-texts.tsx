@@ -6,13 +6,15 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { sdk } from '../lib/client'
+import { readLineItemChoices } from '../lib/custom-choices'
 
 /**
  * "Textos personalizados" del pedido: lista cada línea cuyo comprador escribió
- * un texto (line_item.metadata.custom_text) para que Nikita lo vea de un
- * vistazo y pueda copiarlo al fabricar.
+ * un texto (line_item.metadata.custom_text) o eligió alguna opción
+ * (line_item.metadata.custom_choices, p. ej. la fuente), para que Nikita lo vea
+ * de un vistazo y pueda copiarlo al fabricar.
  *
- * Si el pedido no tiene ninguna línea con texto, el widget no se pinta.
+ * Si el pedido no tiene ninguna línea personalizada, el widget no se pinta.
  */
 
 interface CustomTextLine {
@@ -21,7 +23,9 @@ interface CustomTextLine {
   variant: string | null
   quantity: number
   thumbnail: string | null
-  text: string
+  /** Texto escrito por el comprador (null si la línea solo lleva opciones). */
+  text: string | null
+  choices: { label: string; value: string }[]
 }
 
 function readCustomText(metadata: unknown): string | null {
@@ -36,7 +40,8 @@ function toLines(items: HttpTypes.AdminOrderLineItem[] | null | undefined): Cust
   const out: CustomTextLine[] = []
   for (const item of items ?? []) {
     const text = readCustomText(item.metadata)
-    if (!text) continue
+    const choices = readLineItemChoices(item.metadata)
+    if (!text && choices.length === 0) continue
     out.push({
       id: item.id,
       product: item.product_title ?? item.title ?? 'Producto',
@@ -44,6 +49,7 @@ function toLines(items: HttpTypes.AdminOrderLineItem[] | null | undefined): Cust
       quantity: Number(item.quantity ?? 0),
       thumbnail: item.thumbnail ?? null,
       text,
+      choices,
     })
   }
   return out
@@ -102,12 +108,23 @@ const OrderCustomTextsWidget = ({ data: order }: DetailWidgetProps<HttpTypes.Adm
                   .join(' · ')}
               </Text>
             </div>
-            <div className="flex items-center justify-between gap-x-3 rounded-lg border border-ui-border-base bg-ui-bg-subtle px-4 py-3">
-              <span className="txt-compact-xlarge-plus min-w-0 break-all font-mono text-ui-fg-base">
-                {line.text}
-              </span>
-              <CopyTextButton text={line.text} />
-            </div>
+            {line.text ? (
+              <div className="flex items-center justify-between gap-x-3 rounded-lg border border-ui-border-base bg-ui-bg-subtle px-4 py-3">
+                <span className="txt-compact-xlarge-plus min-w-0 break-all font-mono text-ui-fg-base">
+                  {line.text}
+                </span>
+                <CopyTextButton text={line.text} />
+              </div>
+            ) : null}
+            {line.choices.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {line.choices.map((c) => (
+                  <Badge key={c.label} size="small" color="blue">
+                    {c.label}: {c.value}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       ))}

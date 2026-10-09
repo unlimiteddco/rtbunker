@@ -108,10 +108,12 @@ export async function CategoryGrid({ locale }: CategoryGridProps) {
                       loading="lazy"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-[500ms] group-hover:scale-105"
                     />
-                    {/* Gradiente carbón para que el texto siempre se lea. */}
+                    {/* Degradado carbón SOLO en la franja del título, para que
+                        se lea sin apagar la foto: antes cubría toda la tarjeta
+                        y las fotos se veían con menos color que la original. */}
                     <span
                       aria-hidden
-                      className="absolute inset-0 bg-gradient-to-t from-rt-black/90 via-rt-black/45 to-rt-black/25"
+                      className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-rt-black/85 via-rt-black/35 to-transparent"
                     />
                   </>
                 ) : (
@@ -131,6 +133,7 @@ export async function CategoryGrid({ locale }: CategoryGridProps) {
                         ? 'text-rt-white/85'
                         : 'text-rt-black/75'
                     }`}
+                    style={cat.image ? { textShadow: '0 1px 10px rgba(0,0,0,0.6)' } : undefined}
                   >
                     Categoría
                   </span>

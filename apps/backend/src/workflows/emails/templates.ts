@@ -117,6 +117,17 @@ const customTextLine = (text?: string | null) =>
     ? `<p style="margin:2px 0 0; font-size:12px; color:${BRAND.ink};">Texto: <strong>${escapeHtml(text)}</strong></p>`
     : ''
 
+export type EmailCustomChoice = { label: string; value: string }
+
+/** Una línea "Fuente: Redonda" por cada opción que eligió el comprador. */
+const customChoiceLines = (choices?: EmailCustomChoice[] | null) =>
+  (choices ?? [])
+    .map(
+      (c) =>
+        `<p style="margin:2px 0 0; font-size:12px; color:${BRAND.ink};">${escapeHtml(c.label)}: <strong>${escapeHtml(c.value)}</strong></p>`,
+    )
+    .join('')
+
 export type BankTransferEmailData = {
   holder: string | null
   iban: string | null
@@ -188,6 +199,7 @@ export const orderPlacedTemplate = (order: {
     thumbnail?: string | null
     variant_title?: string | null
     custom_text?: string | null
+    custom_choices?: EmailCustomChoice[] | null
   }>
   /** Si viene, el pedido se paga por transferencia: se muestran los datos. */
   bank_transfer?: BankTransferEmailData | null
@@ -211,7 +223,7 @@ export const orderPlacedTemplate = (order: {
         <td style="padding:12px 8px 12px 0; vertical-align:middle;">
           <p style="margin:0; font-size:14px; font-weight:600; color:${BRAND.carbon};">${it.title}</p>
           ${variant}
-          ${customTextLine(it.custom_text)}
+          ${customTextLine(it.custom_text)}${customChoiceLines(it.custom_choices)}
           <p style="margin:4px 0 0; font-size:12px; color:${BRAND.muted};">Cantidad: ${it.quantity}</p>
         </td>
         <td style="padding:12px 0; vertical-align:middle; text-align:right; white-space:nowrap; font-size:14px; font-weight:600; color:${BRAND.carbon};">
@@ -313,6 +325,7 @@ export const orderPlacedAdminTemplate = (order: {
     unit_price?: number | null
     variant_title?: string | null
     custom_text?: string | null
+    custom_choices?: EmailCustomChoice[] | null
   }>
 }) => {
   const cur = order.currency_code
@@ -328,7 +341,7 @@ export const orderPlacedAdminTemplate = (order: {
         <td style="padding:10px 8px 10px 0; vertical-align:middle;">
           <p style="margin:0; font-size:14px; font-weight:600; color:${BRAND.carbon};">${it.title}</p>
           ${variant}
-          ${customTextLine(it.custom_text)}
+          ${customTextLine(it.custom_text)}${customChoiceLines(it.custom_choices)}
           <p style="margin:4px 0 0; font-size:12px; color:${BRAND.muted};">Cantidad: ${it.quantity}</p>
         </td>
         <td style="padding:10px 0; vertical-align:middle; text-align:right; white-space:nowrap; font-size:14px; font-weight:600; color:${BRAND.carbon};">

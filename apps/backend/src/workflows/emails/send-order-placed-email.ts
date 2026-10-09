@@ -20,6 +20,19 @@ const customTextOf = (i: OrderItemRow): string | null => {
   return typeof v === 'string' && v.trim() ? v.trim() : null
 }
 
+/** Opciones que eligió el comprador (`metadata.custom_choices`), si las hay. */
+const customChoicesOf = (i: OrderItemRow): { label: string; value: string }[] => {
+  const raw = i.metadata?.custom_choices
+  if (!Array.isArray(raw)) return []
+  return raw.flatMap((entry) => {
+    if (typeof entry !== 'object' || entry === null) return []
+    const { label, value } = entry as Record<string, unknown>
+    return typeof label === 'string' && typeof value === 'string' && label.trim() && value.trim()
+      ? [{ label: label.trim(), value: value.trim() }]
+      : []
+  })
+}
+
 export interface SendOrderPlacedEmailInput {
   order_id: string
 }
@@ -106,6 +119,7 @@ const sendOrderPlacedStep = createStep(
         thumbnail: i.thumbnail,
         variant_title: i.variant_title,
         custom_text: customTextOf(i),
+        custom_choices: customChoicesOf(i),
       })),
       bank_transfer: isBankTransfer
         ? { holder: bank.holder, iban: bank.iban, bank: bank.bank, bic: bank.bic }
@@ -136,6 +150,7 @@ const sendOrderPlacedStep = createStep(
           unit_price: i.unit_price,
           variant_title: i.variant_title,
           custom_text: customTextOf(i),
+          custom_choices: customChoicesOf(i),
         })),
       })
 

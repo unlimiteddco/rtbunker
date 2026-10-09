@@ -3,7 +3,7 @@
 import type { HttpTypes } from '@medusajs/types'
 import { Ban, Check, Plus, ShoppingBag } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useMemo, useState, useTransition } from 'react'
+import { createContext, useContext, useMemo, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 
 import { addToCartAction } from '@/app/actions/cart'
@@ -17,13 +17,27 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/cn'
-import { CUSTOM_TEXT_KEY, getCustomTextConfig, normalizeCustomText } from '@/lib/custom-text'
+import {
+  CUSTOM_CHOICES_KEY,
+  CUSTOM_TEXT_KEY,
+  getCustomChoicesConfig,
+  getCustomTextConfig,
+  normalizeCustomText,
+} from '@/lib/custom-text'
 import { formatMoney } from '@/lib/format'
 
 interface VariantSelectorProps {
   product: HttpTypes.StoreProduct
   countryCode: string
+  /**
+   * Muestras de color editadas en el panel (Contenido web → Colores): fondo
+   * CSS por nombre de color en minúsculas. Mandan sobre el catálogo de abajo.
+   */
+  swatches?: Record<string, string>
 }
+
+/** Las muestras editadas llegan a `SwatchButton` sin pasarlas por cada nivel. */
+const SwatchOverrides = createContext<Record<string, string>>({})
 
 /* ─── Catálogo de "estilos" ─────────────────────────────────────── */
 
@@ -81,14 +95,16 @@ const STYLE_MAP: Record<string, StyleEntry> = {
   },
 }
 
-function styleOf(value: string): StyleEntry {
-  return (
-    STYLE_MAP[value.toLowerCase()] ?? {
-      background: '#f5f5f5',
-      type: 'color',
-      border: '#d4d4d4',
-    }
-  )
+function styleOf(value: string, overrides?: Record<string, string>): StyleEntry {
+  const key = value.toLowerCase()
+  const base = STYLE_MAP[key]
+  const edited = overrides?.[key]
+  // El panel solo cambia el aspecto de la muestra; el tipo (color liso /
+  // acabado especial / "ninguno") sigue saliendo del catálogo.
+  if (edited && base?.type !== 'none') {
+    return { type: base?.type ?? 'color', background: edited }
+  }
+  return base ?? { background: '#f5f5f5', type: 'color', border: '#d4d4d4' }
 }
 
 /* "Destacados" mostrados en la primera fila de la PDP. El resto se ocultan
@@ -127,7 +143,7 @@ function pickDefaultStyle(values: string[]): string | undefined {
   return firstColor ?? values[0]
 }
 
-export function VariantSelector({ product, countryCode }: VariantSelectorProps) {
+export function VariantSelector({ product, countryCode, swatches = {} }: VariantSelectorProps) {
   const t = useTranslations('product')
   const options = product.options ?? []
   const variants = product.variants ?? []
@@ -144,6 +160,12 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
     : ''
   const customTextMissing =
     !!customTextConfig && customTextConfig.required && normalizedCustomText.length === 0
+
+  // Opciones a elegir que no cambian el precio (fuente, orientación…),
+  // configuradas en el admin → product.metadata.custom_choices.
+  const choiceConfigs = useMemo(() => getCustomChoicesConfig(product.metadata), [product.metadata])
+  const [choices, setChoices] = useState<Record<string, string>>({})
+  const missingChoice = choiceConfigs.find((c) => c.required && !choices[c.label])
 
   const [selected, setSelected] = useState<Record<string, string>>(() => {
     if (variants.length === 1) {
@@ -205,13 +227,16 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
     )
     const value = colorOpt ? selected[colorOpt.id] : undefined
     if (!value) return undefined
-    const s = styleOf(value)
+    // Una muestra con FOTO no sirve como color de texto: para la vista previa
+    // se usa entonces el color del catálogo.
+    const edited = swatches[value.toLowerCase()]
+    const s = styleOf(value, edited?.includes('url(') ? undefined : swatches)
     if (s.type === 'none') return undefined
     const light =
       ['#ffffff', '#fff', '#f5f5f5', '#bdbdbd'].includes(s.background.toLowerCase()) ||
       /cromo plata|amarillo fluor/i.test(value)
     return { paint: s.background, light, name: value }
-  }, [customTextConfig, options, selected])
+  }, [customTextConfig, options, selected, swatches])
 
   function onSubmit() {
     if (!matchedVariant) {
@@ -223,9 +248,21 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
       toast.error('Escribe tu texto personalizado antes de añadir al carrito')
       return
     }
+    if (missingChoice) {
+      toast.error(`Elige «${missingChoice.label}» antes de añadir al carrito`)
+      return
+    }
+    const chosen = choiceConfigs.flatMap((c) =>
+      choices[c.label] ? [{ label: c.label, value: choices[c.label] }] : [],
+    )
     const metadata =
-      customTextConfig && normalizedCustomText
-        ? { [CUSTOM_TEXT_KEY]: normalizedCustomText }
+      (customTextConfig && normalizedCustomText) || chosen.length > 0
+        ? {
+            ...(customTextConfig && normalizedCustomText
+              ? { [CUSTOM_TEXT_KEY]: normalizedCustomText }
+              : {}),
+            ...(chosen.length > 0 ? { [CUSTOM_CHOICES_KEY]: chosen } : {}),
+          }
         : undefined
     startTransition(async () => {
       const res = await addToCartAction({
@@ -239,7 +276,7 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
         return
       }
       toast.success(
-        metadata
+        customTextConfig && normalizedCustomText
           ? `${product.title} «${normalizedCustomText}» añadido al carrito`
           : `${product.title} añadido al carrito`,
       )
@@ -248,6 +285,7 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
   }
 
   return (
+    <SwatchOverrides.Provider value={swatches}>
     <div className="space-y-7">
       <div className="space-y-6">
         {options.map((opt) => {
@@ -329,6 +367,14 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
           El id vive en el wrapper para que la sticky de móvil lleve también
           al campo de texto (si lo hay). */}
       <div id="pdp-add-to-cart" className="space-y-4">
+        {choiceConfigs.map((c) => (
+          <ChoiceField
+            key={c.label}
+            config={c}
+            value={choices[c.label]}
+            onChange={(v) => setChoices((prev) => ({ ...prev, [c.label]: v }))}
+          />
+        ))}
         {customTextConfig ? (
           <CustomTextField
             config={customTextConfig}
@@ -381,7 +427,7 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
               size="lg"
               className="w-full sm:flex-1"
               onClick={onSubmit}
-              disabled={pending || !matchedVariant || !inStock || customTextMissing}
+              disabled={pending || !matchedVariant || !inStock || customTextMissing || !!missingChoice}
             >
               <ShoppingBag className="h-3.5 w-3.5" />
               {!matchedVariant
@@ -398,8 +444,78 @@ export function VariantSelector({ product, countryCode }: VariantSelectorProps) 
               ✎ Escribe «{customTextConfig.label}» arriba para poder añadirlo al carrito.
             </p>
           ) : null}
+          {missingChoice ? (
+            <p className="mt-2.5 text-[12px] text-rt-ink-500">
+              ☝ Elige «{missingChoice.label}» arriba para poder añadirlo al carrito.
+            </p>
+          ) : null}
         </div>
       </div>
+    </div>
+    </SwatchOverrides.Provider>
+  )
+}
+
+/* ─── ChoiceField ────────────────────────────────────────────────── */
+
+interface ChoiceFieldProps {
+  config: { label: string; options: string[]; required: boolean }
+  value: string | undefined
+  onChange: (value: string) => void
+}
+
+/**
+ * Opción a elegir que no cambia el precio (p. ej. "Fuente"). Con pocas
+ * opciones se pintan como botones; con muchas, como desplegable.
+ */
+function ChoiceField({ config, value, onChange }: ChoiceFieldProps) {
+  return (
+    <div className="space-y-2.5">
+      <div className="flex items-baseline justify-between">
+        <span className="text-uppercase-tight text-[13px] tracking-[0.18em]">
+          {config.label}
+          {config.required ? null : (
+            <span className="ml-2 normal-case tracking-normal text-rt-ink-500">(opcional)</span>
+          )}
+        </span>
+        {value ? <span className="text-[12px] text-rt-ink-500">{value}</span> : null}
+      </div>
+      {config.options.length <= 6 ? (
+        <div className="flex flex-wrap gap-2">
+          {config.options.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              aria-pressed={value === opt}
+              onClick={() => onChange(opt)}
+              className={cn(
+                'rounded-[12px] border px-4 py-2.5 font-[family-name:var(--font-heading)] text-[13px] font-semibold transition-colors',
+                value === opt
+                  ? 'border-rt-black bg-rt-black text-rt-white'
+                  : 'border-rt-ink-100 bg-rt-white text-rt-black hover:border-rt-black/60',
+              )}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <Select
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={config.label}
+          className="h-12 rounded-[12px] border-rt-ink-100 font-[family-name:var(--font-heading)] text-[15px] font-semibold"
+        >
+          <option value="" disabled>
+            Elige una opción
+          </option>
+          {config.options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </Select>
+      )}
     </div>
   )
 }
@@ -415,7 +531,7 @@ interface SwatchButtonProps {
 }
 
 function SwatchButton({ value, active, dimmed = false, size = 'md', onClick }: SwatchButtonProps) {
-  const s = styleOf(value)
+  const s = styleOf(value, useContext(SwatchOverrides))
   const isNone = s.type === 'none'
   const isLight = ['#ffffff', '#fff', '#f5f5f5'].includes(s.background.toLowerCase())
   const dims = size === 'sm' ? 'h-9 w-9 rounded-[10px]' : 'h-11 w-11 rounded-[12px]'

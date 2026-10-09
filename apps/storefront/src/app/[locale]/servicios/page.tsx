@@ -9,6 +9,7 @@ import { ServicesHero } from '@/components/services/services-hero'
 import { ServicesProcess } from '@/components/services/services-process'
 import { ServicesWarranty } from '@/components/services/services-warranty'
 import { ServicesWhy } from '@/components/services/services-why'
+import { getMarqueeItems } from '@/lib/content-blocks'
 import { getPortfolioWorks } from '@/lib/portfolio'
 import { OG_IMAGE, SITE_NAME } from '@/lib/seo'
 import { getProcessSteps, getServiceItems } from '@/lib/site-content'
@@ -39,15 +40,16 @@ export default async function ServicesPage({ params }: ServicesPageProps) {
   setRequestLocale(locale)
 
   // Contenido desde el backend (resiliente: cae al respaldo estático si falla).
-  const [works, serviceItems, processSteps] = await Promise.all([
+  const [works, serviceItems, processSteps, brands] = await Promise.all([
     getPortfolioWorks(),
     getServiceItems(),
     getProcessSteps(),
+    getMarqueeItems(),
   ])
 
   return (
     <>
-      <ServicesHero />
+      <ServicesHero brands={brands} />
       <ServicesGrid items={serviceItems} />
       <ServicesProcess steps={processSteps} />
       <ServicesGallery works={works} />

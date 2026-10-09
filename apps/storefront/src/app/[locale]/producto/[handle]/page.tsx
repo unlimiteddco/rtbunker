@@ -14,6 +14,7 @@ import { ProductJsonLd } from '@/components/seo/product-jsonld'
 import { env } from '@/../env'
 import { Link } from '@/i18n/routing'
 import { getCurrentCustomer } from '@/lib/auth'
+import { getColorSwatches } from '@/lib/content-blocks'
 import { getProductByHandle } from '@/lib/products'
 import { listRelatedProducts } from '@/lib/related'
 import { getProductReviews } from '@/lib/reviews'
@@ -82,9 +83,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     limit: 4,
   })
 
-  const [reviews, customer] = await Promise.all([
+  const [reviews, customer, swatches] = await Promise.all([
     getProductReviews(product.id),
     getCurrentCustomer(),
+    getColorSwatches(),
   ])
 
   return (
@@ -171,7 +173,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               ) : null}
             </header>
 
-            <VariantSelector product={product} countryCode={locale} />
+            <VariantSelector product={product} countryCode={locale} swatches={swatches} />
 
             <ProductInfoTabs description={product.description} details={details} />
           </div>

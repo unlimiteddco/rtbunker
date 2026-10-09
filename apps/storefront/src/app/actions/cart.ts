@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { addLineItem, clearCart, getCart, updateLineItem } from '@/lib/cart'
-import { CUSTOM_TEXT_KEY } from '@/lib/custom-text'
+import { CUSTOM_CHOICES_KEY, CUSTOM_TEXT_KEY, sanitizeCustomChoices } from '@/lib/custom-text'
 
 export interface AddToCartResult {
   ok: boolean
@@ -18,7 +18,7 @@ export interface AddToCartResult {
 
 /**
  * Solo dejamos pasar al line item las claves que la ficha de producto puede
- * enviar (hoy: `custom_text`). Evita que un cliente manipulado inyecte flags
+ * enviar (hoy: `custom_text` y `custom_choices`). Evita que un cliente manipulado inyecte flags
  * internos como `custom_request`.
  */
 function sanitizeLineItemMetadata(
@@ -31,6 +31,8 @@ function sanitizeLineItemMetadata(
     const text = raw.replace(/\s+/g, ' ').trim().slice(0, 200)
     if (text) out[CUSTOM_TEXT_KEY] = text
   }
+  const choices = sanitizeCustomChoices(metadata[CUSTOM_CHOICES_KEY])
+  if (choices.length > 0) out[CUSTOM_CHOICES_KEY] = choices
   return Object.keys(out).length > 0 ? out : undefined
 }
 

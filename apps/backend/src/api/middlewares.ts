@@ -8,6 +8,7 @@ import { processStepAdminMiddlewares } from './admin/process-steps/middlewares'
 import { featuredCategoryAdminMiddlewares } from './admin/featured-categories/middlewares'
 import { quickProductAdminMiddlewares } from './admin/quick-product/middlewares'
 import { priceTableAdminMiddlewares } from './admin/price-tables/middlewares'
+import { contentBlockAdminMiddlewares } from './admin/content-blocks/middlewares'
 import { storeCustomOrderMiddlewares } from './store/custom-orders/middlewares'
 import { newsletterMiddlewares } from './store/newsletter/middlewares'
 import { storePortfolioMiddlewares } from './store/portfolio/middlewares'
@@ -33,6 +34,8 @@ export default defineMiddlewares({
     ...storeServiceItemMiddlewares,
     ...storeProcessStepMiddlewares,
     ...storeFeaturedCategoryMiddlewares,
+    // Piezas genéricas por colección (marcas, tipos de personalizada, colores…).
+    ...contentBlockAdminMiddlewares,
     // Página admin "Publicar producto" (alta rápida de productos).
     ...quickProductAdminMiddlewares,
     // Página admin "Precios por tamaño" (cambio de precios en bloque).

@@ -32,7 +32,7 @@ const PERKS: Perk[] = [
 /**
  * CTA de pegatinas personalizadas en la home. Va justo tras `CategoryGrid`
  * para romper el ritmo de secciones claras: fondo carbón con textura de
- * rejilla y halos teal, mismo lenguaje visual que `AboutBanner` y el hero de
+ * rejilla y halos teal, mismo lenguaje visual que el hero de
  * /personalizadas. Único destino: el configurador de /personalizadas.
  */
 export function CustomStickersCta() {

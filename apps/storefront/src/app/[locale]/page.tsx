@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { setRequestLocale } from 'next-intl/server'
 
-import { AboutBanner } from '@/components/home/about-banner'
 import { CategoryGrid } from '@/components/home/category-grid'
 import { CustomStickersCta } from '@/components/home/custom-stickers-cta'
 import { Hero } from '@/components/home/hero'
@@ -12,6 +11,7 @@ import { TrustBadges } from '@/components/home/trust-badges'
 import { WhyUs } from '@/components/home/why-us'
 import { ProductCard } from '@/components/product/product-card'
 import { Link } from '@/i18n/routing'
+import { getShowcaseItems } from '@/lib/content-blocks'
 import { listProducts } from '@/lib/products'
 import { getFeaturedReviews } from '@/lib/reviews'
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, OG_IMAGE, SITE_NAME } from '@/lib/seo'
@@ -44,22 +44,24 @@ export default async function HomePage({ params }: HomeProps) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  const [{ products }, featuredReviews] = await Promise.all([
+  const [{ products }, featuredReviews, showcaseItems] = await Promise.all([
     listProducts({ countryCode: locale, limit: 8 }),
     getFeaturedReviews(8),
+    getShowcaseItems(),
   ])
 
   return (
     <>
-      {/* Orden de la home. Los fondos ALTERNAN carbón / claro para que nunca
-          se peguen dos secciones del mismo color:
+      {/* Orden de la home. Los fondos alternan carbón / claro:
           hero(negro) · categorías(claro) · a medida(negro) · showcase(claro)
-          · garantías(negro) · destacados(claro) · sobre nosotros(negro)
-          · por qué(claro-2) · reseñas(claro) · faq(claro-2) */}
+          · garantías(negro) · destacados(claro) · por qué(claro-2)
+          · reseñas(claro) · faq(claro-2).
+          El "Sobre nosotros" ya no es una franja aparte: es el último panel
+          del showcase ("El taller donde nacen las RT Bunker"). */}
       <Hero />
       <CategoryGrid locale={locale} />
       <CustomStickersCta />
-      <ScrollShowcase />
+      <ScrollShowcase items={showcaseItems} />
       <TrustBadges />
 
       {products.length > 0 ? (
@@ -101,7 +103,6 @@ export default async function HomePage({ params }: HomeProps) {
         </section>
       )}
 
-      <AboutBanner />
       <WhyUs />
       <HomeTestimonials reviews={featuredReviews} />
       <HomeFaq />

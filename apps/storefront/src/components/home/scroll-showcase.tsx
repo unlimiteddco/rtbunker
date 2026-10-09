@@ -14,49 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/routing'
-
-interface ShowcaseItem {
-  eyebrow: string
-  title: string
-  description: string
-  cta: string
-  href: string
-  image: string
-  alt: string
-}
-
-const ITEMS: ShowcaseItem[] = [
-  {
-    eyebrow: 'Servicio · Car Wrapping',
-    title: 'Cambia el color de tu coche sin pintarlo',
-    description:
-      'Vinilado integral con láminas premium: mate, satinado, brillo o texturas especiales. Acabado de fábrica, reversible y protegiendo la pintura original.',
-    cta: 'Ver car wrapping',
-    href: '/servicios#car-wrapping',
-    image: '/home/car-wrapping.jpg',
-    alt: 'Coche de rally con vinilado integral RT Bunker',
-  },
-  {
-    eyebrow: 'Servicio · Car Detailing',
-    title: 'Detailing que devuelve el brillo de cero',
-    description:
-      'Limpieza profunda, corrección de pintura y protección cerámica. Tu coche como el primer día, por dentro y por fuera, en manos de especialistas.',
-    cta: 'Ver detailing',
-    href: '/servicios',
-    image: '/home/car-detailing.jpg',
-    alt: 'Proceso de car detailing y pulido de pintura',
-  },
-  {
-    eyebrow: 'Quiénes somos',
-    title: 'El taller donde nacen las RT Bunker',
-    description:
-      'Un equipo obsesionado con el detalle y el vinilo bien puesto. Descubre la historia y la gente que hay detrás de cada pegatina que fabricamos.',
-    cta: 'Sobre nosotros',
-    href: '/nosotros',
-    image: '/home/sobre-nosotros.jpg',
-    alt: 'Equipo y taller de RT Bunker',
-  },
-]
+import type { ShowcaseItem } from '@/lib/content-blocks'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
@@ -70,8 +28,11 @@ const EASE = [0.22, 1, 0.36, 1] as const
  * En móvil no se secuestra el scroll: es un carrusel con `scroll-snap` que se
  * pasa con el dedo. Y si el sistema pide menos movimiento, se degrada a una
  * lista vertical normal. Los tres caminos muestran el mismo contenido.
+ *
+ * Los paneles (foto, textos y botón) se editan en el panel: Contenido web →
+ * Más que stickers. El último es el "Sobre nosotros" de la portada.
  */
-export function ScrollShowcase() {
+export function ScrollShowcase({ items }: { items: ShowcaseItem[] }) {
   const reduce = useReducedMotion()
   const trackRef = useRef<HTMLDivElement>(null)
 
@@ -97,7 +58,7 @@ export function ScrollShowcase() {
     return () => window.removeEventListener('resize', measure)
   }, [])
 
-  const x = useTransform(progress, [0, 1], [0, -(ITEMS.length - 1) * viewportWidth])
+  const x = useTransform(progress, [0, 1], [0, -(items.length - 1) * viewportWidth])
 
   return (
     <section className="bg-rt-white">
@@ -122,19 +83,25 @@ export function ScrollShowcase() {
         <div
           ref={trackRef}
           className="relative hidden md:block"
-          style={{ height: `${(ITEMS.length + 1) * 100}vh` }}
+          style={{ height: `${(items.length + 1) * 100}vh` }}
         >
           <div className="sticky top-0 flex h-screen items-center overflow-hidden">
             <motion.div style={{ x }} className="flex will-change-transform">
-              {ITEMS.map((item, i) => (
-                <ShowcasePanel key={item.href} item={item} index={i} progress={progress} />
+              {items.map((item, i) => (
+                <ShowcasePanel
+                  key={i}
+                  item={item}
+                  index={i}
+                  total={items.length}
+                  progress={progress}
+                />
               ))}
             </motion.div>
 
             {/* Contador + barra de progreso */}
             <div className="pointer-events-none absolute inset-x-0 bottom-10">
               <div className="container-page flex items-center gap-5">
-                <Counter progress={progress} />
+                <Counter progress={progress} total={items.length} />
                 <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-rt-ink-100">
                   <motion.div
                     style={{ scaleX: progress }}
@@ -153,9 +120,9 @@ export function ScrollShowcase() {
       {/* ─── Móvil: carrusel con scroll-snap ────────────────── */}
       <div className="md:hidden">
         <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-6 pt-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {ITEMS.map((item, i) => (
+          {items.map((item, i) => (
             <article
-              key={item.href}
+              key={i}
               className="w-[86vw] shrink-0 snap-center rounded-[24px] border border-rt-ink-100 bg-rt-white-2 p-5"
             >
               <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] bg-rt-black">
@@ -164,6 +131,7 @@ export function ScrollShowcase() {
                   alt={item.alt}
                   fill
                   sizes="86vw"
+                  quality={90}
                   className="object-cover"
                 />
                 <span className="absolute left-4 top-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-rt-white/85 [text-shadow:0_2px_18px_rgba(0,0,0,0.45)]">
@@ -175,12 +143,7 @@ export function ScrollShowcase() {
                 {item.title}
               </h3>
               <p className="mt-3 text-[15px] leading-[1.6] text-rt-ink-500">{item.description}</p>
-              <Button asChild variant="primary" size="lg" className="mt-5">
-                <Link href={item.href}>
-                  {item.cta}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+              <PanelCta item={item} className="mt-5" />
             </article>
           ))}
         </div>
@@ -189,14 +152,15 @@ export function ScrollShowcase() {
       {/* ─── Movimiento reducido: lista vertical simple ─────── */}
       {reduce ? (
         <div className="container-page hidden flex-col gap-14 py-16 md:flex">
-          {ITEMS.map((item, i) => (
-            <article key={item.href} className="grid items-center gap-8 md:grid-cols-2">
+          {items.map((item, i) => (
+            <article key={i} className="grid items-center gap-8 md:grid-cols-2">
               <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-rt-black">
                 <Image
                   src={item.image}
                   alt={item.alt}
                   fill
                   sizes="50vw"
+                  quality={90}
                   className="object-cover"
                 />
               </div>
@@ -208,12 +172,7 @@ export function ScrollShowcase() {
                 <p className="mt-4 max-w-[460px] text-[16px] leading-[1.65] text-rt-ink-500">
                   {item.description}
                 </p>
-                <Button asChild variant="primary" size="lg" className="mt-6">
-                  <Link href={item.href}>
-                    {item.cta}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
+                <PanelCta item={item} className="mt-6" />
               </div>
               <span className="sr-only">{i + 1}</span>
             </article>
@@ -233,15 +192,17 @@ export function ScrollShowcase() {
 function ShowcasePanel({
   item,
   index,
+  total,
   progress,
 }: {
   item: ShowcaseItem
   index: number
+  total: number
   progress: MotionValue<number>
 }) {
   // Con N paneles el carril recorre N-1 pantallas, así que el panel `index`
   // queda centrado cuando el avance vale index/(N-1): 0, 0.5 y 1 para tres.
-  const steps = Math.max(ITEMS.length - 1, 1)
+  const steps = Math.max(total - 1, 1)
   const center = index / steps
   const span = 1 / steps
 
@@ -271,12 +232,7 @@ function ShowcasePanel({
           <p className="mt-5 max-w-[460px] text-[16px] leading-[1.65] text-rt-ink-500">
             {item.description}
           </p>
-          <Button asChild variant="primary" size="lg" className="mt-8">
-            <Link href={item.href}>
-              {item.cta}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <PanelCta item={item} className="mt-8" />
         </div>
 
         {/* Imagen con parallax horizontal */}
@@ -286,7 +242,8 @@ function ShowcasePanel({
               src={item.image}
               alt={item.alt}
               fill
-              sizes="(max-width: 1024px) 100vw, 55vw"
+              sizes="(max-width: 1024px) 100vw, 70vw"
+              quality={90}
               className="object-cover"
             />
           </motion.div>
@@ -300,21 +257,53 @@ function ShowcasePanel({
   )
 }
 
+/**
+ * Botón del panel. Sin texto o sin enlace no se pinta; un enlace externo
+ * (https://…) se abre con <a> porque `Link` solo entiende rutas de la web.
+ */
+function PanelCta({ item, className }: { item: ShowcaseItem; className?: string }) {
+  if (!item.cta || !item.href) return null
+  const external = /^https?:\/\//.test(item.href)
+  return (
+    <Button asChild variant="primary" size="lg" className={className}>
+      {external ? (
+        <a href={item.href} target="_blank" rel="noopener">
+          {item.cta}
+          <ArrowRight className="h-4 w-4" />
+        </a>
+      ) : (
+        <Link href={item.href}>
+          {item.cta}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      )}
+    </Button>
+  )
+}
+
 /** Contador 01 · 02 · 03 ligado al avance del carril. */
-function Counter({ progress }: { progress: MotionValue<number> }) {
+function Counter({ progress, total }: { progress: MotionValue<number>; total: number }) {
   return (
     <span className="font-[family-name:var(--font-display)] text-[15px] tracking-[0.08em] text-rt-black">
-      {ITEMS.map((item, i) => (
-        <CounterItem key={item.href} progress={progress} index={i} />
+      {Array.from({ length: total }, (_, i) => (
+        <CounterItem key={i} progress={progress} index={i} total={total} />
       ))}
-      <span className="text-rt-ink-300"> / 0{ITEMS.length}</span>
+      <span className="text-rt-ink-300"> / 0{total}</span>
     </span>
   )
 }
 
 /** Un número del contador: se ilumina cuando su panel está en pantalla. */
-function CounterItem({ progress, index }: { progress: MotionValue<number>; index: number }) {
-  const steps = Math.max(ITEMS.length - 1, 1)
+function CounterItem({
+  progress,
+  index,
+  total,
+}: {
+  progress: MotionValue<number>
+  index: number
+  total: number
+}) {
+  const steps = Math.max(total - 1, 1)
   const center = index / steps
   const span = 1 / steps
   const opacity = useTransform(progress, [center - span, center, center + span], [0.25, 1, 0.25])

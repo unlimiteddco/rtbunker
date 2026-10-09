@@ -30,7 +30,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { ChoicesEditor } from '../../components/choices-editor'
 import { sdk } from '../../lib/client'
+import {
+  draftsToChoices,
+  emptyChoiceDraft,
+  validateChoiceDrafts,
+  type CustomChoiceDraft,
+} from '../../lib/custom-choices'
 
 // ─────────────────────────────────────────────────────────────────
 // Constantes
@@ -118,6 +125,8 @@ interface FormState {
   customTextPlaceholder: string
   customTextMax: string
   customTextRequired: boolean
+  hasChoices: boolean
+  choices: CustomChoiceDraft[]
 }
 
 const EMPTY_FORM: FormState = {
@@ -136,6 +145,8 @@ const EMPTY_FORM: FormState = {
   customTextPlaceholder: '',
   customTextMax: '30',
   customTextRequired: true,
+  hasChoices: false,
+  choices: [],
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -175,6 +186,13 @@ function validate(form: FormState): Record<string, string> {
   if (form.hasCustomText && !form.customTextLabel.trim()) {
     errors.customText = 'Escribe qué le preguntamos al cliente (ej. «Tu usuario de Instagram»).'
   }
+  if (form.hasChoices) {
+    const problem =
+      form.choices.length === 0
+        ? 'Añade al menos una opción a elegir o desactiva el apartado.'
+        : validateChoiceDrafts(form.choices)
+    if (problem) errors.choices = problem
+  }
   return errors
 }
 
@@ -210,6 +228,7 @@ function buildBody(form: FormState, status: 'published' | 'draft') {
           required: form.customTextRequired,
         }
       : null,
+    custom_choices: form.hasChoices ? draftsToChoices(form.choices) : null,
   }
 }
 
@@ -1085,6 +1104,33 @@ const PublishProductPage = () => {
         ) : null}
       </Section>
 
+      {/* 8. Opciones a elegir (no cambian el precio ni crean variantes) */}
+      <Section step={8} title="Opciones a elegir">
+        <ToggleRow
+          title="¿El cliente elige algo más?"
+          description="Algo que no cambia el precio: la fuente, la orientación… Sale como un selector en la web."
+          checked={form.hasChoices}
+          onChange={(v) =>
+            setForm((f) => ({
+              ...f,
+              hasChoices: v,
+              choices: v && f.choices.length === 0 ? [emptyChoiceDraft()] : f.choices,
+            }))
+          }
+          disabled={busy}
+        />
+        {form.hasChoices ? (
+          <div className="flex flex-col gap-y-3">
+            <ChoicesEditor
+              value={form.choices}
+              onChange={(next) => set('choices', next)}
+              disabled={busy}
+            />
+            <FieldError message={visibleErrors.choices} />
+          </div>
+        ) : null}
+      </Section>
+
       {/* Resumen + acciones */}
       <div className="bg-ui-bg-subtle flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-1">
@@ -1113,6 +1159,9 @@ const PublishProductPage = () => {
               ? ` · ${form.categoryIds.length} ${form.categoryIds.length === 1 ? 'categoría' : 'categorías'}`
               : ' · sin categoría'}
             {form.hasCustomText ? ' · con texto del cliente' : ''}
+            {form.hasChoices && form.choices.length > 0
+              ? ` · ${form.choices.length} ${form.choices.length === 1 ? 'opción a elegir' : 'opciones a elegir'}`
+              : ''}
           </Text>
           {tooMany ? (
             <Text size="small" leading="compact" className="text-ui-fg-error">

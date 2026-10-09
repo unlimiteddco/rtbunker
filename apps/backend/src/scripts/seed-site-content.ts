@@ -155,7 +155,7 @@ export default async function seedSiteContent({ container }: ExecArgs) {
   }
 
   // ── 3 · Categorías destacadas de la home ────────────────────────
-  // No hay handles fijos en el storefront: category-grid.tsx coge las 4
+  // No hay handles fijos en el storefront: category-grid.tsx coge las 8
   // primeras categorías reales. Por eso las deducimos de la BD en vez de
   // quemarlas. Si aún no hay categorías creadas, no se siembra nada y Nikita
   // las añade a mano desde el admin (Contenido web → Shop stickers).
@@ -169,7 +169,8 @@ export default async function seedSiteContent({ container }: ExecArgs) {
       entity: 'product_category',
       fields: ['id', 'name', 'handle', 'rank'],
       filters: { is_active: true, is_internal: false },
-      pagination: { take: 4, skip: 0, order: { rank: 'ASC', name: 'ASC' } },
+      // 8 = las dos filas de 4 que pinta la home.
+      pagination: { take: 8, skip: 0, order: { rank: 'ASC', name: 'ASC' } },
     })
 
     if (!categories || categories.length === 0) {

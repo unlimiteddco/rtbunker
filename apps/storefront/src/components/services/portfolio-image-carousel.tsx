@@ -33,7 +33,8 @@ export function PortfolioImageCarousel({ images, alt }: PortfolioImageCarouselPr
           src={src}
           alt={`${alt} — imagen ${i + 1}`}
           fill
-          sizes="(min-width: 768px) 640px, 100vw"
+          sizes="(min-width: 1024px) 900px, 100vw"
+          quality={90}
           priority={i === 0}
           className={`object-cover transition-opacity duration-500 ${
             i === index ? 'opacity-100' : 'opacity-0'

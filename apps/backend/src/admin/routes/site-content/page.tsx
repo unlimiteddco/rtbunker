@@ -24,6 +24,10 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 
+import {
+  ContentBlocksSection,
+  type ContentBlockField,
+} from '../../components/content-blocks-section'
 import { sdk } from '../../lib/client'
 
 // ─────────────────────────────────────────────────────────────────
@@ -1627,6 +1631,73 @@ function FeaturedCategoriesSection() {
 }
 
 // ═════════════════════════════════════════════════════════════════
+// 4 · PIEZAS GENÉRICAS (marcas, tipos de personalizada, colores, paneles)
+// ═════════════════════════════════════════════════════════════════
+// Qué campos enseña cada pestaña. El significado de cada campo por colección
+// está documentado en modules/site-content/models/content-block.ts.
+
+const MARQUEE_FIELDS: ContentBlockField[] = [
+  { key: 'title', label: 'Texto', placeholder: 'Ej: BMW', required: true },
+  {
+    key: 'image',
+    label: 'Logo (opcional)',
+    kind: 'image',
+    hint: 'Si subes un logo, sale el logo en vez del texto. Mejor un PNG con fondo transparente: la web lo pinta en un solo color para que todos queden iguales.',
+  },
+]
+
+const PRODUCT_TYPE_FIELDS: ContentBlockField[] = [
+  { key: 'title', label: 'Nombre', placeholder: 'Ej: Vinilos', required: true },
+  {
+    key: 'description',
+    label: 'Texto de la tarjeta',
+    placeholder: 'Ej: Pegatinas individuales en vinilo premium',
+  },
+  {
+    key: 'image',
+    label: 'Foto o icono',
+    kind: 'image',
+    hint: 'Sale dentro del círculo de la tarjeta. Si no subes ninguna, se usa el icono de siempre. Mejor cuadrada.',
+  },
+]
+
+const COLOR_FIELDS: ContentBlockField[] = [
+  {
+    key: 'title',
+    label: 'Nombre del color',
+    placeholder: 'Ej: Negro mate',
+    required: true,
+    hint: 'Tiene que ser el mismo nombre que lleva el color en los productos (mayúsculas y minúsculas dan igual).',
+  },
+  {
+    key: 'value',
+    label: 'Color',
+    kind: 'color',
+    hint: 'Elige el color con el selector. Se usa cuando no hay foto.',
+  },
+  {
+    key: 'image',
+    label: 'Foto de la muestra (opcional)',
+    kind: 'image',
+    hint: 'Para acabados que no son un color liso (holográfico, cromo, carbono…): una foto del vinilo. Si hay foto, manda la foto.',
+  },
+]
+
+const SHOWCASE_FIELDS: ContentBlockField[] = [
+  { key: 'subtitle', label: 'Línea superior', placeholder: 'Ej: Servicio · Car Wrapping' },
+  { key: 'title', label: 'Título', required: true },
+  { key: 'description', label: 'Texto', kind: 'textarea' },
+  {
+    key: 'image',
+    label: 'Foto',
+    kind: 'image',
+    hint: 'Horizontal y grande: al menos 1600 px de ancho para que se vea nítida.',
+  },
+  { key: 'link_label', label: 'Texto del botón', placeholder: 'Ej: Conócenos' },
+  { key: 'link_href', label: 'Enlace del botón', placeholder: 'Ej: /nosotros' },
+]
+
+// ═════════════════════════════════════════════════════════════════
 // Página
 // ═════════════════════════════════════════════════════════════════
 
@@ -1648,6 +1719,10 @@ const SiteContentPage = () => {
             <Tabs.Trigger value="services">Servicios</Tabs.Trigger>
             <Tabs.Trigger value="process">Proceso</Tabs.Trigger>
             <Tabs.Trigger value="categories">Shop stickers</Tabs.Trigger>
+            <Tabs.Trigger value="showcase">Más que stickers</Tabs.Trigger>
+            <Tabs.Trigger value="marquee">Marcas</Tabs.Trigger>
+            <Tabs.Trigger value="product-types">Tipos de personalizada</Tabs.Trigger>
+            <Tabs.Trigger value="colors">Colores</Tabs.Trigger>
           </Tabs.List>
         </div>
 
@@ -1659,6 +1734,42 @@ const SiteContentPage = () => {
         </Tabs.Content>
         <Tabs.Content value="categories">
           <FeaturedCategoriesSection />
+        </Tabs.Content>
+        <Tabs.Content value="showcase">
+          <ContentBlocksSection
+            collection="showcase"
+            heading="Paneles «Más que stickers» de la portada"
+            help="Los paneles que pasan en horizontal en la portada: servicios y el taller. Cada uno con su foto, texto y botón."
+            noun="panel"
+            fields={SHOWCASE_FIELDS}
+          />
+        </Tabs.Content>
+        <Tabs.Content value="marquee">
+          <ContentBlocksSection
+            collection="marquee"
+            heading="Línea corredora de marcas"
+            help="La línea que se mueve sola en Servicios y en Personalizadas. Cada elemento puede ser un texto o un logo."
+            noun="marca"
+            fields={MARQUEE_FIELDS}
+          />
+        </Tabs.Content>
+        <Tabs.Content value="product-types">
+          <ContentBlocksSection
+            collection="product_type"
+            heading="Tarjetas «Elige tu producto» de Personalizadas"
+            help="Cambia la foto, el nombre y el texto de cada tarjeta. Son cinco fijas: no se pueden crear ni borrar porque cada una abre su configurador."
+            noun="tarjeta"
+            fields={PRODUCT_TYPE_FIELDS}
+          />
+        </Tabs.Content>
+        <Tabs.Content value="colors">
+          <ContentBlocksSection
+            collection="color_swatch"
+            heading="Muestras de color de las variantes"
+            help="La bolita de cada color en la ficha de producto. Puedes ajustar el tono o poner una foto del vinilo; los colores que no estén aquí salen en gris claro."
+            noun="color"
+            fields={COLOR_FIELDS}
+          />
         </Tabs.Content>
       </Tabs>
     </Container>

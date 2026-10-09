@@ -6,6 +6,7 @@ import { useState, type ComponentType } from 'react'
 import { Reveal } from '@/components/services/reveal'
 import { FaqChat, type FaqChatItem } from '@/components/ui/faq-chat'
 import { cn } from '@/lib/cn'
+import type { ProductTypeContent } from '@/lib/content-blocks'
 
 import { PersonalizadasCompact } from './personalizadas-compact'
 import { DEFAULT_PRODUCT_TYPE, PRODUCT_TYPES, type ProductTypeId } from './product-types'
@@ -13,6 +14,12 @@ import { DEFAULT_PRODUCT_TYPE, PRODUCT_TYPES, type ProductTypeId } from './produ
 interface PersonalizadasProductPickerProps {
   /** Créditos disponibles del socio (0 si no es socio o no tiene). */
   availableCredits?: number
+  /**
+   * Nombre, texto y foto de cada tarjeta editados desde el panel (Contenido
+   * web → Tipos de personalizada), por id de tipo. Lo que falte usa el valor
+   * de fábrica de `PRODUCT_TYPES` y el icono de siempre.
+   */
+  content?: Record<string, ProductTypeContent>
 }
 
 // FAQ que acompaña al configurador (solo visible tras elegir un tipo).
@@ -47,7 +54,8 @@ const CONFIGURATOR_FAQS: FaqChatItem[] = [
   },
 ]
 
-// Icono lucide por tipo de producto (Nikita pondrá fotos reales más adelante).
+// Icono lucide por tipo de producto: se usa mientras la tarjeta no tenga una
+// foto subida desde el panel.
 const TYPE_ICONS: Record<ProductTypeId, ComponentType<{ className?: string }>> = {
   vinyls: Sticker,
   sheets: Files,
@@ -64,6 +72,7 @@ const TYPE_ICONS: Record<ProductTypeId, ComponentType<{ className?: string }>> =
  */
 export function PersonalizadasProductPicker({
   availableCredits = 0,
+  content = {},
 }: PersonalizadasProductPickerProps) {
   // "Vinilos" viene preseleccionado: al entrar, el configurador ya está listo
   // más abajo, pero la página SIEMPRE abre arriba del todo.
@@ -99,6 +108,10 @@ export function PersonalizadasProductPicker({
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {PRODUCT_TYPES.map((p, i) => {
             const Icon = TYPE_ICONS[p.id]
+            const edited = content[p.id]
+            const name = edited?.name ?? p.name
+            const desc = edited?.desc ?? p.desc
+            const photo = edited?.image
             const isSelected = selected === p.id
             const disabled = !p.enabled
 
@@ -120,18 +133,36 @@ export function PersonalizadasProductPicker({
                         : 'border-rt-ink-100 bg-rt-white hover:-translate-y-1 hover:border-rt-black hover:shadow-[var(--shadow-md)]',
                   )}
                 >
-                  <span
-                    className={cn(
-                      'inline-flex h-16 w-16 items-center justify-center rounded-full transition-colors',
-                      disabled
-                        ? 'bg-rt-white-3 text-rt-ink-300'
-                        : isSelected
-                          ? 'bg-rt-yellow text-rt-black'
-                          : 'bg-rt-yellow/15 text-rt-yellow-deep group-hover:bg-rt-yellow group-hover:text-rt-black',
-                    )}
-                  >
-                    <Icon className="h-7 w-7" />
-                  </span>
+                  {photo ? (
+                    // Foto subida desde el panel: círculo más grande, recortada.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={photo}
+                      alt=""
+                      loading="lazy"
+                      className={cn(
+                        'h-20 w-20 rounded-full object-cover ring-2 transition-all',
+                        disabled
+                          ? 'opacity-50 ring-rt-ink-100 grayscale'
+                          : isSelected
+                            ? 'ring-rt-yellow'
+                            : 'ring-rt-ink-100 group-hover:ring-rt-yellow',
+                      )}
+                    />
+                  ) : (
+                    <span
+                      className={cn(
+                        'inline-flex h-16 w-16 items-center justify-center rounded-full transition-colors',
+                        disabled
+                          ? 'bg-rt-white-3 text-rt-ink-300'
+                          : isSelected
+                            ? 'bg-rt-yellow text-rt-black'
+                            : 'bg-rt-yellow/15 text-rt-yellow-deep group-hover:bg-rt-yellow group-hover:text-rt-black',
+                      )}
+                    >
+                      <Icon className="h-7 w-7" />
+                    </span>
+                  )}
 
                   <h3
                     className={cn(
@@ -139,11 +170,11 @@ export function PersonalizadasProductPicker({
                       disabled ? 'text-rt-ink-300 line-through decoration-[1.5px]' : 'text-rt-black',
                     )}
                   >
-                    {p.name}
+                    {name}
                   </h3>
 
-                  {p.desc ? (
-                    <p className="mt-2 text-[13px] leading-[1.5] text-rt-ink-500">{p.desc}</p>
+                  {desc ? (
+                    <p className="mt-2 text-[13px] leading-[1.5] text-rt-ink-500">{desc}</p>
                   ) : null}
 
                   {disabled ? (
@@ -177,6 +208,7 @@ export function PersonalizadasProductPicker({
             <PersonalizadasCompact
               key={selected}
               initialProductType={selected}
+              {...(content[selected]?.name ? { productTypeLabel: content[selected].name } : {})}
               showTypeStep={false}
               showHero={false}
               availableCredits={availableCredits}

@@ -24,6 +24,8 @@ export interface QuickProductInput {
     max?: number | null
     required?: boolean | null
   } | null
+  /** Opciones que elige el cliente sin cambiar el precio (p. ej. la fuente). */
+  custom_choices?: { label: string; options: string[]; required?: boolean }[] | null
 }
 
 // El producto más grande del catálogo tiene 285 variantes.
@@ -263,6 +265,28 @@ export const prepareQuickProductStep = createStep(
       if (typeof ct.required === 'boolean') {
         metadata.custom_text_required = ct.required
       }
+    }
+
+    // ── Opciones a elegir (misma metadata que lee el storefront) ──────────
+    const choices = (input.custom_choices ?? []).map((c) => {
+      const options = [...new Set(c.options.map((o) => o.trim()).filter(Boolean))]
+      return { label: c.label.trim(), options, required: c.required !== false }
+    })
+    const labels = choices.map((c) => c.label.toLowerCase())
+    if (new Set(labels).size !== labels.length) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        'Hay dos opciones a elegir con el mismo nombre.',
+      )
+    }
+    if (choices.some((c) => c.options.length < 2)) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        'Cada opción a elegir necesita al menos dos valores distintos.',
+      )
+    }
+    if (choices.length > 0) {
+      metadata = { ...(metadata ?? {}), custom_choices: choices }
     }
 
     const product: CreateProductWorkflowInputDTO = {

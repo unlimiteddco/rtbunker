@@ -72,3 +72,66 @@ export function readLineItemCustomText(metadata: unknown): string | null {
   if (typeof metadata !== 'object' || metadata === null) return null
   return asText((metadata as Record<string, unknown>)[CUSTOM_TEXT_KEY])
 }
+
+/* ─── Opciones a elegir (sin cambio de precio) ──────────────────────
+ *
+ * Además del texto libre, un producto puede pedir al comprador que ELIJA
+ * entre varias opciones que no cambian el precio ni son variantes: la fuente
+ * de una "Pegatina Instagram", la orientación, etc.
+ *
+ * - Configuración: `product.metadata.custom_choices`, un array de
+ *     { label: 'Fuente', options: ['Clásica', 'Redonda'], required: true }
+ *   (lo edita Nikita en el widget "Texto personalizado" del producto).
+ * - Elección del comprador: `line_item.metadata.custom_choices`, un array de
+ *     { label: 'Fuente', value: 'Redonda' }
+ */
+
+export const CUSTOM_CHOICES_KEY = 'custom_choices'
+export const CUSTOM_CHOICES_MAX = 6
+
+export interface CustomChoiceConfig {
+  label: string
+  options: string[]
+  required: boolean
+}
+
+export interface CustomChoiceValue {
+  label: string
+  value: string
+}
+
+/** Opciones a elegir configuradas en el producto (vacío si no tiene). */
+export function getCustomChoicesConfig(metadata: unknown): CustomChoiceConfig[] {
+  if (typeof metadata !== 'object' || metadata === null) return []
+  const raw = (metadata as Record<string, unknown>)[CUSTOM_CHOICES_KEY]
+  if (!Array.isArray(raw)) return []
+
+  return raw.slice(0, CUSTOM_CHOICES_MAX).flatMap((entry): CustomChoiceConfig[] => {
+    if (typeof entry !== 'object' || entry === null) return []
+    const e = entry as Record<string, unknown>
+    const label = asText(e.label)
+    const options = Array.isArray(e.options)
+      ? e.options.map(asText).filter((o): o is string => o !== null)
+      : []
+    if (!label || options.length === 0) return []
+    return [{ label, options, required: asBool(e.required, true) }]
+  })
+}
+
+/** Limpia las elecciones antes de guardarlas en el line item. */
+export function sanitizeCustomChoices(raw: unknown): CustomChoiceValue[] {
+  if (!Array.isArray(raw)) return []
+  return raw.slice(0, CUSTOM_CHOICES_MAX).flatMap((entry): CustomChoiceValue[] => {
+    if (typeof entry !== 'object' || entry === null) return []
+    const e = entry as Record<string, unknown>
+    const label = asText(e.label)?.slice(0, 80)
+    const value = asText(e.value)?.slice(0, 120)
+    return label && value ? [{ label, value }] : []
+  })
+}
+
+/** Lee las opciones elegidas de la metadata de un line item. */
+export function readLineItemChoices(metadata: unknown): CustomChoiceValue[] {
+  if (typeof metadata !== 'object' || metadata === null) return []
+  return sanitizeCustomChoices((metadata as Record<string, unknown>)[CUSTOM_CHOICES_KEY])
+}

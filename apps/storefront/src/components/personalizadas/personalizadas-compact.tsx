@@ -46,6 +46,8 @@ interface PersonalizadasCompactProps {
   showTypeStep?: boolean
   /** Renderiza la franja hero interna ("Diseña tu pegatina"). Default true. */
   showHero?: boolean
+  /** Nombre del tipo tal y como está editado en el panel (si difiere del de fábrica). */
+  productTypeLabel?: string
 }
 
 const eur = (n: number) => n.toFixed(2).replace('.', ',') + ' €'
@@ -73,6 +75,7 @@ export function PersonalizadasCompact({
   initialProductType,
   showTypeStep = true,
   showHero = true,
+  productTypeLabel,
 }: PersonalizadasCompactProps) {
   void _contactEmail
   const router = useRouter()
@@ -589,7 +592,7 @@ export function PersonalizadasCompact({
               ) : null}
             </header>
             <ul className="flex flex-col gap-1.5 border-y border-rt-ink-100 py-2.5 text-[12px]">
-              <SummaryRow label="Producto" value={pt.name} />
+              <SummaryRow label="Producto" value={productTypeLabel ?? pt.name} />
               <SummaryRow label="Forma" value={sh.name} />
               <SummaryRow label="Corte" value={ct.name} />
               <SummaryRow label="Acabado" value={ma.name} />

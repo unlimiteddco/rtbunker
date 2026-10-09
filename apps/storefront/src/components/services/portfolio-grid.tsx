@@ -108,6 +108,9 @@ function PortfolioCard({ work, onClick }: { work: PortfolioWork; onClick: () => 
         alt={work.title}
         fill
         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        // Fotos de trabajos reales: se sirven con más calidad que el 75 por
+        // defecto de Next, que las dejaba blandas y con artefactos.
+        quality={90}
         className="object-cover transition-transform duration-[700ms] ease-[var(--ease-out-rt)] group-hover:scale-105"
       />
       <span

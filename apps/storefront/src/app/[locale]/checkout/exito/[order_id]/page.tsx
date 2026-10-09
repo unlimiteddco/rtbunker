@@ -12,6 +12,7 @@ import {
   getBankTransferInfo,
   type BankTransferInfo,
 } from '@/lib/bank-transfer'
+import { readLineItemChoices } from '@/lib/custom-text'
 import { formatMoney } from '@/lib/format'
 import { sdk } from '@/lib/medusa'
 
@@ -158,6 +159,12 @@ export default async function CheckoutSuccessPage({ params }: SuccessPageProps) 
                         </span>
                       </span>
                     ) : null}
+                    {readLineItemChoices(item.metadata).map((c) => (
+                      <span key={c.label} className="mt-0.5 block text-xs">
+                        {c.label}:{' '}
+                        <span className="font-semibold text-foreground">{c.value}</span>
+                      </span>
+                    ))}
                   </span>
                   <span className="font-medium tabular-nums">
                     {formatMoney((item.unit_price ?? 0) * item.quantity, currency)}
