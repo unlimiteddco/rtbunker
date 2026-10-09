@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Check, Crown, Sparkles, Star, Truck, Zap } from 'lucide-react'
 import { setRequestLocale } from 'next-intl/server'
 
+import { ClubHero } from '@/components/memberships/club-hero'
 import { PlanCheckoutButton } from '@/components/memberships/plan-checkout-button'
 import { Reveal } from '@/components/services/reveal'
 import { FaqChat, type FaqChatItem } from '@/components/ui/faq-chat'
@@ -45,32 +46,10 @@ export default async function PlanesPage({
 
   return (
     <>
-      {/* ─── Hero ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-rt-black text-rt-white">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-rt-yellow/20 blur-3xl"
-        />
-        {/* Altura de referencia de todas las cabeceras oscuras (la home es la
-            única excepción): min-h 380 en móvil / 480 en escritorio. */}
-        <div className="container-page relative flex min-h-[380px] flex-col justify-center py-16 text-center md:min-h-[480px] md:py-24">
-          <Reveal as="up">
-            <p className="rt-eyebrow inline-flex items-center gap-2 text-rt-yellow">
-              <Crown className="h-4 w-4" /> RT Bunker Club
-            </p>
-            <h1 className="mx-auto mt-4 max-w-[16ch] font-[family-name:var(--font-display)] text-[clamp(36px,7vw,80px)] uppercase leading-[0.95] tracking-[-0.02em]">
-              Hazte socio y <span className="text-rt-yellow">produce más</span>
-            </h1>
-            <p className="mx-auto mt-5 max-w-[560px] text-[16px] leading-[1.6] text-rt-ink-300">
-              Créditos mensuales para pegatinas personalizadas, envío urgente gratis, impresión el
-              mismo día y descuento en todos tus pedidos. Cancela cuando quieras.
-            </p>
-          </Reveal>
-        </div>
-      </section>
+      <ClubHero />
 
       {/* ─── Tarjetas de planes ───────────────────────────── */}
-      <section className="bg-rt-white-2 py-16 md:py-24">
+      <section id="planes" className="scroll-mt-20 bg-rt-white-2 py-16 md:py-24">
         <div className="container-page">
           <div className="grid items-start gap-6 lg:grid-cols-3">
             {MEMBERSHIP_TIERS.map((tier, i) => (
