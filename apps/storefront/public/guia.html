@@ -86,6 +86,15 @@
   :root[data-theme="light"] .brandlogo.on-dark { display: none; }
   :root[data-theme="dark"] .brandlogo.on-light { display: none; }
   :root[data-theme="dark"] .brandlogo.on-dark { display: block; }
+  /* Primera línea de la guía: fecha del último cambio + estado de la web. */
+  .toprow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 26px; }
+  .toprow .badge { margin-bottom: 0; }
+  .updated {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.04em;
+    color: var(--text); background: var(--accent-soft); border: 1px solid var(--accent-line);
+    border-radius: 999px; padding: 6px 13px; margin: 0;
+  }
+  .updated b { font-weight: 700; }
   .badge {
     display: inline-flex; align-items: center; gap: 9px;
     font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em;
@@ -297,7 +306,9 @@
     section { padding-top: 30px; }
     .sec-head { margin-bottom: 16px; break-after: avoid; break-inside: avoid; }
     #accesos { break-inside: avoid; }
-    .brandlogo { height: 26px; margin-bottom: 22px; }
+    .brandlogo { height: 26px; margin-bottom: 18px; }
+    .toprow { margin-bottom: 18px; gap: 8px; }
+    .toprow .updated, .toprow .badge { font-size: 10.8px; padding: 5px 11px; }
     .brandlogo.on-light { display: block !important; }
     .brandlogo.on-dark { display: none !important; }
     .no-print { display: none !important; }
@@ -324,9 +335,12 @@
 <div class="wrap">
 
   <header class="hero">
-<img class="brandlogo on-light" src="logo-black.png" alt="RT Bunker" width="1166" height="188">
+<div class="toprow">
+      <p class="updated">Última modificación de la web: <b>9 de octubre de 2026</b></p>
+      <span class="badge"><span class="dot"></span> Web publicada · rtbunker.com</span>
+    </div>
+    <img class="brandlogo on-light" src="logo-black.png" alt="RT Bunker" width="1166" height="188">
     <img class="brandlogo on-dark" src="logo-white.png" alt="" aria-hidden="true" width="1166" height="188">
-    <span class="badge"><span class="dot"></span> Web publicada · rtbunker.com</span>
     <h1>Tu web,<br><span class="thin">por dentro.</span></h1>
     <p class="lead">La guía de RT Bunker: qué ve tu cliente en cada página, cómo compra y cómo lo gestionas todo desde el panel de control, paso a paso y sin tecnicismos.</p>
 
